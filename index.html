@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MIDILLI MIDI Monitor</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 2em; background: #222222; color: #F3F6F9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #374151; padding: 6px 12px; text-align: center; vertical-align: middle; }
+        th { background: #2D3748; color: #FFF; }
+        td { background: #23272F; color: #F3F6F9; }
+        #inputs { margin-top: 2em; margin-bottom: 1em; display: flex; align-items: center; gap: 1.2em; }
+        h1 { text-align: center; color: #fff; }
+        select, button, input[type="checkbox"] {
+            background: #374151;
+            color: #F3F6F9;
+            border: 1px solid #4B5563;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        select:focus, button:focus {
+            outline: 2px solid #FFF;
+        }
+        button:hover, select:hover {
+            background: #4B5563;
+            color: #FFF;
+        }
+        #aboutBtn, #aboutOkBtn, #clearBtn, #connectBtn, #disconnectBtn, #toggleRawFormat {
+            background: #2D3748;
+            color: #FFF;
+            border: 1px solid #FFF;
+        }
+        #aboutBtn:hover, #aboutOkBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #toggleRawFormat:hover {
+            background: #FFF;
+            color: #222222;
+        }
+        a { color: #FFF; }
+    </style>
+</head>
+<body>
+    <a href="https://midilli.tech" target="_blank" style="position: absolute; left: 2em; top: 1em; font-size: 1.2em; color: #fff; text-decoration: none; font-weight: bold; z-index: 10; display: flex; flex-direction: column; align-items: center;">
+        <img src="https://midilli.tech/wp-content/uploads/2024/10/cropped-MidilliLogoUnisexNoBg.png" alt="MIDILLI Logo" style="width:40px; height:auto; margin-bottom:2px;">
+        MIDILLI Tech
+    </a>
+    <div style="margin-top: 70px;">
+        <h1>MIDILLI MIDI Monitor</h1>
+    </div>
+    <div id="inputs">
+        <label for="inputSelect">MIDI Input:</label>
+        <select id="inputSelect" style="background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;"></select>
+        <button id="connectBtn" style="background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Connect</button>
+        <button id="disconnectBtn" style="display:none; background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Disconnect</button>
+        <label style="margin-left:1em;">
+            <input type="checkbox" id="autoScroll" checked>
+            Auto Scroll
+        </label>
+        <button id="clearBtn" style="margin-left:0.5em; background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Clear</button>
+        <div style="flex:1"></div>
+        <button id="aboutBtn" style="background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Help/About</button>
+    </div>
+    <div id="aboutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#222; color:#fff; padding:2em 2em 1.5em 2em; border-radius:8px; max-width:90vw; max-height:90vh; box-shadow:0 4px 32px #000;">
+            <h2 style="margin-top:0;">About</h2>
+            <p>
+                This MIDI monitor displays all messages received from the selected MIDI device, including sysex, note, program change, control change (CC), clock, and more.<br><br>
+                Currently, Google Chrome, Edge, and Firefox (experimental) browsers are supported. If you do not see your MIDI device, this may be because permission was not granted, the device is in use by another application, or it is not connected. Make sure permission is granted, the device is plugged in and not used by other applications, then refresh the page. Select the device you want to connect and press Connect. To release the device, you need to disconnect it. You can also enable Auto Scroll to automatically keep the latest messages in view.<br><br>
+                The button in the Raw Message column shows the currently displayed number format. You can click it to toggle between decimal and hexadecimal display.
+            </p>
+            <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.</p>
+            <button id="aboutOkBtn" style="margin-top:1.5em; background:#444; color:#fff; border:none; padding:8px 22px; border-radius:4px; font-size:1em; cursor:pointer;">OK</button>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Channel</th>
+                <th>Device</th>
+                <th>
+                    Raw Message
+                    <button id="toggleRawFormat" style="margin-left:8px;background:#222; color:#fff; border:none; border-radius:4px; font-size:1em; cursor:pointer;" title="Click to toggle between hex and dec">Hex</button>
+                </th>
+            </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+    </table>
+
+    <script src="midi.js"></script>
+    <script>
+        // MIDI message type parser
+        function parseMidiMessage(data) {
+            const status = data[0];
+            if (status >= 0x80 && status <= 0xEF) {
+                const typeNibble = status & 0xF0;
+                const channel = (status & 0x0F) + 1;
+                switch (typeNibble) {
+                    case 0x80: // Note Off
+                    case 0x90: { // Note On
+                        const noteNumber = data[1];
+                        const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+                        const octave = Math.floor(noteNumber / 12) - 1;
+                        const noteName = noteNames[noteNumber % 12] + octave;
+                        return { 
+                            type: (typeNibble === 0x90 ? "Note On" : "Note Off") + ` (${noteName})`, 
+                            channel, 
+                            value: data[2] // velocity
+                        };
+                    }
+                    case 0xA0: // Poly AT
+                        return { type: "Poly AT", channel, value: data[2] };
+                    case 0xB0: // CC
+                        return { type: `CC (#${data[1]})`, channel, value: data[2] };
+                    case 0xC0: // Program
+                        return { type: "Program", channel, value: data[1] };
+                    case 0xD0: // Channel AT
+                        return { type: "Channel AT", channel, value: data[1] };
+                    case 0xE0: // Pitch Bend
+                        return { type: "Pitch Bend", channel, value: ((data[2] << 7) | data[1]) - 8192 };
+                }
+            } else if (status === 0xF0) {
+                return { type: "SysEx", channel: "n/a", value: "" };
+            } else if (status === 0xF8) {
+                return { type: "Clock", channel: "n/a", value: "" };
+            } else if (status === 0xFA) {
+                return { type: "Start", channel: "n/a", value: "" };
+            } else if (status === 0xFB) {
+                return { type: "Continue", channel: "n/a", value: "" };
+            } else if (status === 0xFC) {
+                return { type: "Stop", channel: "n/a", value: "" };
+            } else if (status === 0xFE) {
+                return { type: "Active Sense", channel: "n/a", value: "" };
+            } else if (status === 0xFF) {
+                return { type: "Reset", channel: "n/a", value: "" };
+            }
+            return { type: "Unknown", channel: "n/a", value: "" };
+        }
+
+        // Fill input select
+        async function populateInputs() {
+            await MIDIEngine.init();
+            const inputNames = JSON.parse(MIDIEngine.get_input_port_names());
+            const select = document.getElementById('inputSelect');
+            select.innerHTML = "";
+            inputNames.forEach((name, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = name;
+                select.appendChild(opt);
+            });
+            // Show notification if no devices found
+            if (inputNames.length === 0) {
+                // Remove any previous notification
+                let notif = document.getElementById('noMidiNotif');
+                if (!notif) {
+                    notif = document.createElement('div');
+                    notif.id = 'noMidiNotif';
+                    notif.style.background = '#ffeb3b';
+                    notif.style.color = '#222';
+                    notif.style.padding = '1em';
+                    notif.style.margin = '1em 0';
+                    notif.style.borderRadius = '6px';
+                    notif.style.fontWeight = 'bold';
+                    notif.style.textAlign = 'center';
+                    notif.style.maxWidth = '700px';
+                    notif.style.marginLeft = 'auto';
+                    notif.style.marginRight = 'auto';
+                    notif.innerHTML = `
+                        No MIDI input devices found.<br>
+                        This may be because permission was not granted, the device is in use by another application, or not connected.<br>
+                        Please reload the page after resolving the issue.<br>
+                        If permission was not granted, click the icon next to the address bar and allow MIDI device access.
+                    `;
+                    select.parentNode.parentNode.insertBefore(notif, select.parentNode.nextSibling);
+                }
+            } else {
+                // Remove notification if devices are found
+                const notif = document.getElementById('noMidiNotif');
+                if (notif) notif.remove();
+            }
+        }
+        // Log MIDI message
+        function logMidiMessage({timestamp, type, value, channel, device, raw}) {
+            const tbody = document.getElementById('logBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${timestamp}</td>
+                <td>${type}</td>
+                <td>${value !== undefined ? value : ""}</td>
+                <td>${channel}</td>
+                <td>${device}</td>
+                <td>${raw}</td>
+            `;
+            tbody.appendChild(tr);
+            // Scroll to bottom if autoScroll is enabled
+            if (document.getElementById('autoScroll').checked) {
+                tr.scrollIntoView({ behavior: "smooth" });
+            }
+        }
+        // MIDI callback
+        window._godot_midi_callback = function(json) {
+            const data = JSON.parse(json);
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString('en-GB', { hour12: false }) + '.' + now.getMilliseconds().toString().padStart(3, '0');
+            const { type, channel, value } = parseMidiMessage(data);
+            const device = document.getElementById('inputSelect').selectedOptions[0]?.textContent || "n/a";
+            // Format raw message as hex and dec
+            const hex = Array.from(data).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+            const dec = Array.from(data).join(' ');
+            logMidiMessage({
+                timestamp,
+                type,
+                value,
+                channel,
+                device,
+                raw: `<span class="raw-msg" data-hex="${hex}" data-dec="${dec}">${rawFormat === 'hex' ? hex : dec}</span>`
+            });
+
+        };
+
+        // Connect button
+        document.getElementById('connectBtn').onclick = function() {
+            const idx = document.getElementById('inputSelect').value;
+            MIDIEngine.close_input_port();
+            MIDIEngine.open_input_port(Number(idx));
+            document.getElementById('connectBtn').style.display = 'none';
+            document.getElementById('disconnectBtn').style.display = '';
+            document.getElementById('inputSelect').disabled = true;
+        };
+
+        // Disconnect button
+        document.getElementById('disconnectBtn').onclick = function() {
+            MIDIEngine.close_input_port();
+            document.getElementById('disconnectBtn').style.display = 'none';
+            document.getElementById('connectBtn').style.display = '';
+            document.getElementById('inputSelect').disabled = false;
+        };
+
+        // On load
+        // populateInputs(); // Removed because function is not defined
+
+        // Toggle raw message format
+        let rawFormat = 'hex';
+        document.getElementById('toggleRawFormat').onclick = function() {
+            rawFormat = (rawFormat === 'hex') ? 'dec' : 'hex';
+            this.textContent = (rawFormat === 'hex') ? 'Hex' : 'Dec';
+            document.querySelectorAll('.raw-msg').forEach(td => {
+                td.textContent = td.getAttribute(`data-${rawFormat}`);
+            });
+        };
+
+        // On load
+        populateInputs();
+
+        // About modal logic
+        document.getElementById('aboutBtn').onclick = function() {
+            document.getElementById('aboutModal').style.display = 'flex';
+            document.getElementById('aboutYear').textContent = new Date().getFullYear();
+        };
+        document.getElementById('aboutOkBtn').onclick = function() {
+            document.getElementById('aboutModal').style.display = 'none';
+        };
+        // Optional: close modal when clicking outside the modal box
+        document.getElementById('aboutModal').onclick = function(e) {
+            if (e.target === this) this.style.display = 'none';
+        };
+
+        // Clear button logic
+        document.getElementById('clearBtn').onclick = function() {
+            document.getElementById('logBody').innerHTML = '';
+        };
+    </script>
+</body>
+</html>
