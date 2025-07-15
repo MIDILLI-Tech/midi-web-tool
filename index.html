@@ -47,6 +47,9 @@
     <div style="margin-top: 70px;">
         <h1>MIDILLI MIDI Monitor</h1>
     </div>
+    <p style="text-align:center; margin: 1em 0; color: #ccc; font-size:1.1em;">
+        Select a MIDI input and press Connect to start listening
+    </p>
     <div id="inputs">
         <label for="inputSelect">MIDI Input:</label>
         <select id="inputSelect" style="background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;"></select>
@@ -64,7 +67,7 @@
         <div style="background:#222; color:#fff; padding:2em 2em 1.5em 2em; border-radius:8px; max-width:90vw; max-height:90vh; box-shadow:0 4px 32px #000;">
             <h2 style="margin-top:0;">About</h2>
             <p>
-                This MIDI monitor displays all messages received from the selected MIDI device, including sysex, note, program change, control change (CC), clock, and more.<br><br>
+                This MIDI monitor displays all messages received from the selected MIDI device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
                 Currently, Google Chrome, Edge, and Firefox (experimental) browsers are supported. If you do not see your MIDI device, this may be because permission was not granted, the device is in use by another application, or it is not connected. Make sure permission is granted, the device is plugged in and not used by other applications, then refresh the page. Select the device you want to connect and press Connect. To release the device, you need to disconnect it. You can also enable Auto Scroll to automatically keep the latest messages in view.<br><br>
                 The button in the Raw Message column shows the currently displayed number format. You can click it to toggle between decimal and hexadecimal display.
             </p>
@@ -176,10 +179,12 @@
                     `;
                     select.parentNode.parentNode.insertBefore(notif, select.parentNode.nextSibling);
                 }
+                document.getElementById('connectBtn').disabled = true;
             } else {
                 // Remove notification if devices are found
                 const notif = document.getElementById('noMidiNotif');
                 if (notif) notif.remove();
+                document.getElementById('connectBtn').disabled = false;
             }
         }
         // Log MIDI message
