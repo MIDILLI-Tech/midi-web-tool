@@ -138,11 +138,14 @@ function open_input_port(index) {
 
       // console.log("🎵 Incoming MIDI:", dataArray);
 
-      if (typeof window._godot_midi_callback === "function") {
-        // Send to Godot as JSON string
-        window._godot_midi_callback(JSON.stringify(Array.from(event.data)));
+      if (typeof window._midi_callback === "function") {
+        // Send to Callback as JSON string
+        window._midi_callback(JSON.stringify({
+          index: index,
+          data: Array.from(event.data)
+        }));
       } else {
-        console.warn("❗️ _godot_midi_callback function is not defined!");
+        console.warn("❗️ _midi_callback function is not defined!");
       }
     };
   }
