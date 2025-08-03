@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MIDILLI MIDI Monitor</title>
+    <title>MIDILLI MIDI Web Monitor - Real-Time Web MIDI Message Analyzer</title>
+    <meta name="description" content="MIDILLI MIDI Monitor is a web-based tool to view and analyze MIDI messages from your connected MIDI devices in real time.">
+    <meta name="robots" content="index, follow">
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 2em; background: #222222; color: #F3F6F9; }
         table { border-collapse: collapse; width: 100%; }
@@ -40,6 +42,13 @@
     </style>
 </head>
 <body>
+<noscript>
+    <div style="background: #ffeb3b; color: #222; padding: 1.5em; margin: 2em auto; border-radius: 8px; max-width: 700px; font-size: 1.15em; text-align: center; font-weight: bold;">
+        This site allows you to view and analyze MIDI messages from your connected MIDI devices in real time.<br>
+        JavaScript is needed to access your MIDI devices and display incoming MIDI data.<br><br>
+        Please enable JavaScript in your browser settings and reload the page.
+    </div>
+</noscript>
     <a href="https://midilli.tech" target="_blank" style="position: absolute; left: 2em; top: 1em; font-size: 1.2em; color: #fff; text-decoration: none; font-weight: bold; z-index: 10; display: flex; flex-direction: column; align-items: center;">
         <img src="https://midilli.tech/wp-content/uploads/2024/10/cropped-MidilliLogoUnisexNoBg.png" alt="MIDILLI Logo" style="width:40px; height:auto; margin-bottom:2px;">
         MIDILLI Tech
@@ -98,6 +107,11 @@
 
     <script src="midi.js"></script>
     <script>
+        // Show error if MIDI access is denied
+        if (!navigator.requestMIDIAccess) {
+            alert("Web MIDI API is not supported in this browser. Please use Chrome, Edge, or Firefox (with experimental features enabled).");
+        }
+
         // MIDI message type parser
         function parseMidiMessage(data) {
             const status = data[0];
