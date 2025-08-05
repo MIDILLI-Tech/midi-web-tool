@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2024-current MIDILLI Tech
+Copyright (c) MIDILLI Tech
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -143,30 +143,28 @@ function init() {
     return JSON.stringify(midiInputs.map((input) => input.name));
   }
 
-function open_input_port(index) {
-  currentInput = midiInputs[index] || null;
-  if (currentInput) {
-    console.log("📤 Assigned callback");
+  function open_input_port(index) {
+    currentInput = midiInputs[index] || null;
+    if (currentInput) {
+      console.log("📤 Assigned callback");
 
-    currentInput.onmidimessage = (event) => {
-      const dataArray = Array.from(event.data);  // e.g.: [176, 15, 0]
+      currentInput.onmidimessage = (event) => {
+        const dataArray = Array.from(event.data);  // e.g.: [176, 15, 0]
 
-      // console.log("🎵 Incoming MIDI:", dataArray);
+        // console.log("🎵 Incoming MIDI:", dataArray);
 
-      if (typeof window._midi_callback === "function") {
-        // Send to Callback as JSON string
-        window._midi_callback(JSON.stringify({
-          index: index,
-          data: Array.from(event.data)
-        }));
-      } else {
-        console.warn("❗️ _midi_callback function is not defined!");
-      }
-    };
+        if (typeof window._midi_callback === "function") {
+          // Send to Callback as JSON string
+          window._midi_callback(JSON.stringify({
+            index: index,
+            data: Array.from(event.data)
+          }));
+        } else {
+          console.warn("❗️ _midi_callback function is not defined!");
+        }
+      };
+    }
   }
-}
-
-
 
   function close_input_port() {
     if (currentInput) {
