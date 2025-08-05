@@ -208,13 +208,11 @@ function init() {
     return false;
   }
 
-
   function send_message(dataArray) {
-    if (currentOutput) {
+    if (currentOutput && typeof currentOutput.send === 'function') {
       currentOutput.send(dataArray);
-      // console.log("MIDI sent:", dataArray);
     } else {
-      console.log("Output port is not open.");
+      console.log("Output port is not open or not valid.");
     }
   }
 

@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MIDILLI MIDI Web Monitor - Real-Time Web MIDI Message Analyzer</title>
-    <meta name="description" content="MIDILLI MIDI Monitor is a web-based tool to view and analyze MIDI messages from your connected MIDI devices in real time.">
+    <title>MIDILLI MIDI Web Tool - Analyzer, Monitor & Sender</title>
+    <meta name="description" content="MIDILLI MIDI Web Tool is a web-based tool to view and analyze incoming MIDI messages and send MIDI messages in real time.">
     <meta name="robots" content="index, follow">
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 2em; background: #222222; color: #F3F6F9; }
@@ -44,8 +44,8 @@
 <body>
 <noscript>
     <div style="background: #ffeb3b; color: #222; padding: 1.5em; margin: 2em auto; border-radius: 8px; max-width: 700px; font-size: 1.15em; text-align: center; font-weight: bold;">
-        This site allows you to view and analyze MIDI messages from your connected MIDI devices in real time.<br>
-        JavaScript is needed to access your MIDI devices and display incoming MIDI data.<br><br>
+        This site allows you to view and analyze MIDI messages from your connected MIDI devices and send MIDI messages in real time.<br>
+        JavaScript is needed to access your MIDI devices and display incoming MIDI data and send.<br><br>
         Please enable JavaScript in your browser settings and reload the page.
     </div>
 </noscript>
@@ -59,6 +59,7 @@
     <p style="text-align:center; margin: 1em 0; color: #ccc; font-size:1.1em;">
         Select the MIDI input(s) you want to monitor from the list and press Connect.<br>
         Use the Ctrl/Cmd key to select or deselect multiple inputs.
+        You can also send MIDI messages to the selected output device.<br>
     </p>
     <div id="inputs">
         <label for="inputSelect">MIDI Input:</label>
@@ -71,6 +72,10 @@
             Auto Scroll
         </label>
         <button id="clearBtn">Clear</button>
+        <label for="outputSelect" style="margin-left:1em;">MIDI Output:</label>
+        <select id="outputSelect">
+        </select>
+        <button id="sendBtn">Send</button>
         <div style="flex:1"></div>
         <button id="aboutBtn">Help/About</button>
     </div>
@@ -78,15 +83,15 @@
         <div style="background:#222; color:#fff; padding:2em 2em 1.5em 2em; border-radius:8px; max-width:90vw; max-height:90vh; box-shadow:0 4px 32px #000;">
             <h2 style="margin-top:0;">About</h2>
             <p>
-                This MIDI monitor displays all messages received from the selected MIDI device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
-                Currently, Google Chrome, Edge, and Firefox (experimental) browsers are supported. If you do not see your MIDI device, this may be because permission was not granted, the device is in use by another application, or it is not connected.
-                Make sure permission is granted, the device is plugged in and not used by other applications, then refresh the page.<br>
-                If the device is just connected, you can use Refresh Devices button to update the device list.<br><br>
-                Select the device(s) you want to connect (Hold Ctrl/Cmd to add to and remove from the selection) and press Connect.
-                To release the device, you need to disconnect it. You can also enable Auto Scroll to automatically keep the latest messages in view.<br><br>
-                The button in the Raw Message column shows the currently displayed number format. You can click it to toggle between decimal and hexadecimal display.
+                This MIDI tool allows you to both monitor all incoming MIDI messages from your selected devices and send custom MIDI messages to any connected output device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
+                Supported browsers include Google Chrome, Edge, and Firefox (experimental). If you do not see your MIDI device, please ensure permission is granted, the device is connected and not in use by another application, then refresh the page.<br>
+                After connecting a new device, use the Refresh Devices button to update the device list.<br><br>
+                To monitor, select one or more MIDI input devices (hold Ctrl/Cmd to select multiple) and press Connect. To send messages, select a MIDI output device and use the Send button.<br>
+                You can disconnect inputs at any time by clicking Disconnect.<br>
+                Enable Auto Scroll to keep the latest messages in view.<br><br>
+                The button in the Raw Message column lets you toggle between hexadecimal and decimal display for message data.
             </p>
-            <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.<br>MIDI Web Monitor Version: <span id="aboutLastUpdated"></span></p>
+            <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.<br>MIDILLI MIDI Web Tool Version: <span id="aboutLastUpdated"></span></p>
             <button id="aboutOkBtn" style="margin-top:1.5em; background:#444; color:#fff; border:none; padding:8px 22px; border-radius:4px; font-size:1em; cursor:pointer;">OK</button>
         </div>
     </div>
@@ -175,6 +180,30 @@
                 opt.textContent = name;
                 select.appendChild(opt);
             });
+            // Populate output select
+            const outputNames = JSON.parse(MIDIEngine.get_output_port_names());
+            const outputSelect = document.getElementById('outputSelect');
+            outputSelect.innerHTML = "";
+            const sendBtn = document.getElementById('sendBtn');
+            if (outputNames.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.textContent = "None";
+                opt.disabled = true;
+                opt.selected = true;
+                outputSelect.appendChild(opt);
+                outputSelect.disabled = true;
+                sendBtn.disabled = true;
+            } else {
+                outputNames.forEach((name, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.textContent = name;
+                    outputSelect.appendChild(opt);
+                });
+                outputSelect.disabled = false;
+                sendBtn.disabled = false;
+            }
             // Show notification if no devices found
             if (inputNames.length === 0) {
                 // Remove any previous notification
@@ -278,6 +307,60 @@
             showNotification("Listening MIDI devices...", 0);
         };
 
+        document.getElementById('sendBtn').onclick = function () {
+            const outputSelect = document.getElementById('outputSelect');
+            const selectedIndex = outputSelect.selectedIndex;
+            if (selectedIndex < 0) {
+                showNotification("Please select a MIDI output device.", 2000);
+                return;
+            }
+
+            MIDIEngine.open_output_port(selectedIndex);
+
+            const message = prompt("Enter MIDI message to send:\n- Decimal: e.g., '144 60 127'\n- Hex: prefix each byte with 0x, e.g., '0x90 0x3C 0x7F'");
+            if (!message) return; // Cancelled
+
+            const data = message
+                .trim()
+                .split(/\s+/)
+                .map(val => {
+                    if (/^0x[0-9a-fA-F]+$/.test(val)) {
+                        return parseInt(val, 16);
+                    } else if (/^[0-9]+$/.test(val)) {
+                        return parseInt(val, 10);
+                    } else {
+                        return NaN;
+                    }
+                })
+                .filter(num => !isNaN(num) && num >= 0 && num <= 255);
+
+            if (data.length === 0) {
+                showNotification("Invalid MIDI message format. Use decimal (e.g., '144 60 127') or hex with 0x prefix (e.g., '0x90 0x3C 0x7F').", 5000);
+                return;
+            }
+
+            const midiMessage = new Uint8Array(data);
+            MIDIEngine.send_message(midiMessage);
+            showNotification(`Sent: ${message}`, 2000);
+
+            // Parse type, value, channel from the message
+            const { type, value, channel } = parseMidiMessage(data);
+            // Get device name
+            const device = outputSelect.options[selectedIndex]?.textContent || "n/a";
+            // Format raw message as hex and dec
+            const hex = Array.from(data).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+            const dec = Array.from(data).join(' ');
+
+            logMidiMessage({
+                timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false }) + '.' + new Date().getMilliseconds().toString().padStart(3, '0'),
+                type: type + " (Sent)",
+                value,
+                channel,
+                device,
+                raw: `<span class="raw-msg" data-hex="${hex}" data-dec="${dec}">${rawFormat === 'hex' ? hex : dec}</span>`
+            });
+        };
+
         // Disconnect button
         document.getElementById('disconnectBtn').onclick = function() {
             MIDIEngine.close_input_port();
@@ -310,9 +393,9 @@
                 notif.style.maxWidth = '220px';
                 notif.style.marginLeft = '0';
                 notif.style.marginRight = '0';
-                // Insert below the clear button
-                const clearBtn = document.getElementById('clearBtn');
-                clearBtn.parentNode.insertBefore(notif, clearBtn.nextSibling);
+                // Insert below the send button
+                const sendBtn = document.getElementById('sendBtn');
+                sendBtn.parentNode.insertBefore(notif, sendBtn.nextSibling);
             }
             notif.textContent = text;
             notif.style.display = '';
