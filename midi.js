@@ -33,6 +33,9 @@ SOFTWARE.
  *   Initializes MIDI access and populates input/output port lists.
  *   @returns {Promise<void>} Resolves when MIDI access is granted or logs error if denied.
  *
+ * @property {function(): void} refresh_devices
+ *   Refreshes the list of available MIDI input and output devices.
+ *
  * @property {function(): number} get_input_port_count
  *   Returns the number of available MIDI input ports.
  *   @returns {number}
