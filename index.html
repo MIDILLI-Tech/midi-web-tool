@@ -29,12 +29,12 @@
             background: #4B5563;
             color: #FFF;
         }
-        #aboutBtn, #aboutOkBtn, #clearBtn, #connectBtn, #disconnectBtn, #toggleRawFormat {
+        #aboutBtn, #aboutOkBtn, #clearBtn, #connectBtn, #disconnectBtn, #refreshBtn, #toggleRawFormat {
             background: #2D3748;
             color: #FFF;
             border: 1px solid #FFF;
         }
-        #aboutBtn:hover, #aboutOkBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #toggleRawFormat:hover {
+        #aboutBtn:hover, #aboutOkBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #refreshBtn:hover, #toggleRawFormat:hover {
             background: #FFF;
             color: #222222;
         }
@@ -58,20 +58,21 @@
     </div>
     <p style="text-align:center; margin: 1em 0; color: #ccc; font-size:1.1em;">
         Select the MIDI input(s) you want to monitor from the list and press Connect.<br>
-        Use the Ctrl key to select or deselect multiple inputs.
+        Use the Ctrl/Cmd key to select or deselect multiple inputs.
     </p>
     <div id="inputs">
         <label for="inputSelect">MIDI Input:</label>
-        <select id="inputSelect" multiple size="4" style="background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;"></select>
-        <button id="connectBtn" style="background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Connect</button>
-        <button id="disconnectBtn" style="display:none; background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Disconnect</button>
+        <select id="inputSelect" multiple size="4"></select>
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" style="display:none;">Disconnect</button>
+        <button id="refreshBtn">Refresh Devices</button>
         <label style="margin-left:1em;">
             <input type="checkbox" id="autoScroll" checked>
             Auto Scroll
         </label>
-        <button id="clearBtn" style="margin-left:0.5em; background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Clear</button>
+        <button id="clearBtn">Clear</button>
         <div style="flex:1"></div>
-        <button id="aboutBtn" style="background:#444; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Help/About</button>
+        <button id="aboutBtn">Help/About</button>
     </div>
     <div id="aboutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
         <div style="background:#222; color:#fff; padding:2em 2em 1.5em 2em; border-radius:8px; max-width:90vw; max-height:90vh; box-shadow:0 4px 32px #000;">
@@ -79,12 +80,13 @@
             <p>
                 This MIDI monitor displays all messages received from the selected MIDI device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
                 Currently, Google Chrome, Edge, and Firefox (experimental) browsers are supported. If you do not see your MIDI device, this may be because permission was not granted, the device is in use by another application, or it is not connected.
-                Make sure permission is granted, the device is plugged in and not used by other applications, then refresh the page.<br><br>
-                Select the device(s) you want to connect (Hold Ctrl to add to and remove from the selection) and press Connect.
+                Make sure permission is granted, the device is plugged in and not used by other applications, then refresh the page.<br>
+                If the device is just connected, you can use Refresh Devices button to update the device list.<br><br>
+                Select the device(s) you want to connect (Hold Ctrl/Cmd to add to and remove from the selection) and press Connect.
                 To release the device, you need to disconnect it. You can also enable Auto Scroll to automatically keep the latest messages in view.<br><br>
                 The button in the Raw Message column shows the currently displayed number format. You can click it to toggle between decimal and hexadecimal display.
             </p>
-            <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.</p>
+            <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.<br>MIDI Web Monitor Version: <span id="aboutLastUpdated"></span></p>
             <button id="aboutOkBtn" style="margin-top:1.5em; background:#444; color:#fff; border:none; padding:8px 22px; border-radius:4px; font-size:1em; cursor:pointer;">OK</button>
         </div>
     </div>
@@ -107,6 +109,7 @@
 
     <script src="midi.js"></script>
     <script>
+        LAST_UPDATED = "05.08.2025"; // Update this with the actual last updated date
         // Show error if MIDI access is denied
         if (!navigator.requestMIDIAccess) {
             alert("Web MIDI API is not supported in this browser. Please use Chrome, Edge, or Firefox (with experimental features enabled).");
@@ -192,17 +195,23 @@
                     notif.innerHTML = `
                         No MIDI input devices found.<br>
                         This may be because permission was not granted, the device is in use by another application, or not connected.<br>
-                        Please reload the page after resolving the issue.<br>
-                        If permission was not granted, click the icon next to the address bar and allow MIDI device access.
+                        Please try again after resolving the issue.<br>
+                        If permission was not granted, click the icon next to the address bar and allow MIDI device access.<br>
                     `;
                     select.parentNode.parentNode.insertBefore(notif, select.parentNode.nextSibling);
                 }
-                document.getElementById('connectBtn').disabled = true;
+                // document.getElementById('connectBtn').disabled = true;
             } else {
                 // Remove notification if devices are found
                 const notif = document.getElementById('noMidiNotif');
                 if (notif) notif.remove();
-                document.getElementById('connectBtn').disabled = false;
+                // Enable/disable connectBtn based on selection
+                // const connectBtn = document.getElementById('connectBtn');
+                // connectBtn.disabled = select.selectedOptions.length === 0;
+                // Add event listener to enable/disable connectBtn on selection change
+                select.onchange = function() {
+                    // connectBtn.disabled = select.selectedOptions.length === 0;
+                };
             }
         }
         // Log MIDI message
@@ -257,11 +266,16 @@
         document.getElementById('connectBtn').onclick = function() {
             const select = document.getElementById('inputSelect');
             const selectedIndices = Array.from(select.selectedOptions).map(opt => Number(opt.value));
+            if (selectedIndices.length === 0) {
+                showNotification("Please select at least one MIDI input device.", 2000);
+                return;
+            }
             MIDIEngine.close_input_port();
             selectedIndices.forEach(idx => MIDIEngine.open_input_port(idx));
             document.getElementById('connectBtn').style.display = 'none';
             document.getElementById('disconnectBtn').style.display = '';
             document.getElementById('inputSelect').disabled = true;
+            showNotification("Listening MIDI devices...", 0);
         };
 
         // Disconnect button
@@ -270,11 +284,44 @@
             document.getElementById('disconnectBtn').style.display = 'none';
             document.getElementById('connectBtn').style.display = '';
             document.getElementById('inputSelect').disabled = false;
+            showNotification("Stopped listening.", 1500);
         };
 
-        // On load
-        // populateInputs(); // Removed because function is not defined
+        // Refresh button
+        document.getElementById('refreshBtn').onclick = function() {
+            MIDIEngine.refresh_devices();
+            populateInputs();
+            showNotification('Refreshed devices!');
+        };
 
+        // Show customizable notification
+        function showNotification(text, duration = 1500) {
+            let notif = document.getElementById('refreshNotif');
+            if (!notif) {
+                notif = document.createElement('div');
+                notif.id = 'refreshNotif';
+                notif.style.background = '#4caf50';
+                notif.style.color = '#fff';
+                notif.style.padding = '0.7em 1.2em';
+                notif.style.marginTop = '0.7em';
+                notif.style.borderRadius = '6px';
+                notif.style.fontWeight = 'bold';
+                notif.style.textAlign = 'center';
+                notif.style.maxWidth = '220px';
+                notif.style.marginLeft = '0';
+                notif.style.marginRight = '0';
+                // Insert below the clear button
+                const clearBtn = document.getElementById('clearBtn');
+                clearBtn.parentNode.insertBefore(notif, clearBtn.nextSibling);
+            }
+            notif.textContent = text;
+            notif.style.display = '';
+            if(duration > 0) {
+                setTimeout(() => {
+                    notif.style.display = 'none';
+                }, duration);
+            }
+        }
         // Toggle raw message format
         let rawFormat = 'hex';
         document.getElementById('toggleRawFormat').onclick = function() {
@@ -292,6 +339,7 @@
         document.getElementById('aboutBtn').onclick = function() {
             document.getElementById('aboutModal').style.display = 'flex';
             document.getElementById('aboutYear').textContent = new Date().getFullYear();
+            document.getElementById('aboutLastUpdated').textContent = LAST_UPDATED; // Update this with the actual last updated date
         };
         document.getElementById('aboutOkBtn').onclick = function() {
             document.getElementById('aboutModal').style.display = 'none';
@@ -304,6 +352,7 @@
         // Clear button logic
         document.getElementById('clearBtn').onclick = function() {
             document.getElementById('logBody').innerHTML = '';
+            showNotification('Cleared log!');
         };
     </script>
 </body>

@@ -113,6 +113,18 @@ function init() {
   });
 }
 
+  // Refreshes the list of MIDI input and output devices
+  function refresh_devices() {
+    if (midiAccess) {
+      midiInputs = Array.from(midiAccess.inputs.values());
+      midiOutputs = Array.from(midiAccess.outputs.values());
+      console.log("🔄 Devices refreshed.");
+      console.log("🎹 Inputs:", midiInputs.map(i => i.name));
+      console.log("📤 Outputs:", midiOutputs.map(o => o.name));
+    } else {
+      console.warn("MIDI access not initialized. Call init() first.");
+    }
+  }
 
   // INPUT FUNCTIONS
   
@@ -221,6 +233,8 @@ function open_input_port(index) {
     open_output_port,
     close_output_port,
     is_output_port_open,
-    send_message
+    send_message,
+    // refresh_devices
+    refresh_devices
   };
 })();
