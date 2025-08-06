@@ -29,12 +29,12 @@
             background: #4B5563;
             color: #FFF;
         }
-        #aboutBtn, #aboutOkBtn, #clearBtn, #filtersBtn, #sendBtn, #connectBtn, #disconnectBtn, #refreshBtn, #toggleRawFormat {
+        #aboutBtn, #aboutOkBtn, #clearBtn, #exportBtn, #maxMessagesInput, #filtersBtn, #sendBtn, #connectBtn, #disconnectBtn, #refreshBtn, #toggleRawFormat {
             background: #2D3748;
             color: #FFF;
             border: 1px solid #FFF;
         }
-        #aboutBtn:hover, #aboutOkBtn:hover, #filtersBtn:hover, #sendBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #refreshBtn:hover, #toggleRawFormat:hover {
+        #aboutBtn:hover, #aboutOkBtn:hover, #exportBtn:hover, #filtersBtn:hover, #sendBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #refreshBtn:hover, #toggleRawFormat:hover {
             background: #FFF;
             color: #222222;
         }
@@ -66,8 +66,10 @@
         <select id="inputSelect" multiple size="4"></select>
         <button id="connectBtn">Connect</button>
         <button id="disconnectBtn" style="display:none;">Disconnect</button>
-        <input id="maxMessagesInput" type="number" min="1" max="1000" value="100" style="width:80px;" title="Max messages to show in log">
-        <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 0.5em; align-items: center; margin-bottom: 0.5em;">
+        <div style="display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap; gap: 0.5em; align-items: center; margin-bottom: 0.5em;">
+            <label for="maxMessagesInput">Show last:
+            <input id="maxMessagesInput" type="number" min="1" max="1000" value="10" style="width:80px;" title="Max messages to show in log">
+            </label>
             <button id="filtersBtn">Filters</button>
             <button id="refreshBtn">Refresh Devices</button>
             <label style="margin-left:0.5em; display: flex; align-items: center; gap: 0.3em;">
@@ -75,6 +77,7 @@
                 Auto Scroll
             </label>
             <button id="clearBtn">Clear</button>
+            <button id="exportBtn">Export</button>
         </div>
         <!-- Filters Modal -->
         <div id="filtersModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
@@ -117,13 +120,13 @@
         <div style="background:#222; color:#fff; padding:2em 2em 1.5em 2em; border-radius:8px; max-width:90vw; max-height:90vh; box-shadow:0 4px 32px #000;">
             <h2 style="margin-top:0;">About</h2>
             <p>
-                This MIDI tool allows you to both monitor all incoming MIDI messages from your selected devices and send custom MIDI messages to any connected output device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
+                This MIDI tool allows you to monitor all incoming MIDI messages from your selected devices and send custom MIDI messages to any connected output device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
+                You can export your log using the Export button—choose to export all columns (press 1) or only raw MIDI messages (press 2). The Filters button lets you select which message types and channels you want to see in the log. Use the "Show last" box to limit how many recent messages are displayed. The button in the Raw Message column lets you toggle between hexadecimal and decimal display for message data.<br><br>
                 Supported browsers include Google Chrome, Edge, and Firefox (experimental). If you do not see your MIDI device, please ensure permission is granted, the device is connected and not in use by another application, then refresh the page.<br>
                 After connecting a new device, use the Refresh Devices button to update the device list.<br><br>
                 To monitor, select one or more MIDI input devices (hold Ctrl/Cmd to select multiple) and press Connect. To send messages, select a MIDI output device and use the Send button.<br>
                 You can disconnect inputs at any time by clicking Disconnect.<br>
-                Enable Auto Scroll to keep the latest messages in view.<br><br>
-                The button in the Raw Message column lets you toggle between hexadecimal and decimal display for message data.
+                Enable Auto Scroll to keep the latest messages in view.
             </p>
             <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.<br>MIDILLI MIDI Web Tool Version: <span id="aboutLastUpdated"></span></p>
             <button id="aboutOkBtn" style="margin-top:1.5em; background:#444; color:#fff; border:none; padding:8px 22px; border-radius:4px; font-size:1em; cursor:pointer;">OK</button>
@@ -148,7 +151,7 @@
 
     <script src="midi.js"></script>
     <script>
-        LAST_UPDATED = "05.08.2025"; // Update this with the actual last updated date
+        LAST_UPDATED = "06.08.2025"; // Update this with the actual last updated date
         let rawFormat = 'hex';
         // Show error if MIDI access is denied
         if (!navigator.requestMIDIAccess) {
@@ -512,15 +515,17 @@
                 notif.style.color = '#fff';
                 notif.style.padding = '0.7em 1.2em';
                 notif.style.marginTop = '0.7em';
+                notif.style.marginBottom = '1.5em';
                 notif.style.borderRadius = '6px';
                 notif.style.fontWeight = 'bold';
                 notif.style.textAlign = 'center';
-                notif.style.maxWidth = '220px';
-                notif.style.marginLeft = '0';
-                notif.style.marginRight = '0';
-                // Insert below the send button
-                const sendBtn = document.getElementById('sendBtn');
-                sendBtn.parentNode.insertBefore(notif, sendBtn.nextSibling);
+                notif.style.maxWidth = '450px';
+                notif.style.margin = '0 auto';
+                // Insert notification just above the table
+                const table = document.querySelector('table');
+                if (table && table.parentNode) {
+                    table.parentNode.insertBefore(notif, table);
+                }
             }
             notif.textContent = text;
             notif.style.display = '';
@@ -555,12 +560,67 @@
         document.getElementById('aboutModal').onclick = function(e) {
             if (e.target === this) this.style.display = 'none';
         };
-
         // Clear button logic
         document.getElementById('clearBtn').onclick = function() {
             document.getElementById('logBody').innerHTML = '';
             showNotification('Cleared log!');
         };
+
+        // Export button logic
+        document.getElementById('exportBtn').onclick = function() {
+            const rows = Array.from(document.querySelectorAll('#logBody tr')).filter(row => row.style.display !== 'none');
+            if (rows.length === 0) {
+                showNotification('No data to export!', 2000);
+                return;
+            }
+            // Ask user what to export
+            const choice = prompt(
+                "What do you want to export?\n" +
+                "1: Everything (all columns)\n" +
+                "2: Only Raw Messages\n" +
+                "Enter 1 or 2:",
+                "1"
+            );
+            if (choice === null) return; // Cancelled
+
+            let txt = "";
+            if (choice.trim() === "2") {
+                // Only export Raw Message columns
+                txt = "Raw Message\n";
+                rows.forEach(row => {
+                    let raw = "";
+                    const rawTd = row.children[5];
+                    if (rawTd) {
+                        const rawSpan = rawTd.querySelector('.raw-msg');
+                        raw = rawSpan ? rawSpan.textContent : rawTd.textContent;
+                    }
+                    txt += raw + "\n";
+                });
+            } else {
+                // Export everything (default)
+                const headers = Array.from(document.querySelectorAll('table thead th')).map(th => th.textContent.trim());
+                txt = headers.join('\t') + '\n';
+                rows.forEach(row => {
+                    const cells = Array.from(row.children).map(td => {
+                        // For raw message, get textContent (not HTML)
+                        return td.querySelector('.raw-msg') ? td.querySelector('.raw-msg').textContent : td.textContent;
+                    });
+                    txt += cells.join('\t') + '\n';
+                });
+            }
+            const blob = new Blob([txt], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (choice.trim() === "2" ? 'midi_raw_log.txt' : 'midi_log.txt');
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        };
     </script>
 </body>
+</html>
 </html>
