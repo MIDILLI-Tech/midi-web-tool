@@ -199,7 +199,7 @@
 
     <script src="midi.js"></script>
     <script>
-        LAST_UPDATED = "06.08.2025"; // Update this with the actual last updated date
+        LAST_UPDATED = "07.08.2025"; // Update this with the actual last updated date
         let rawFormat = 'hex';
         // Show error if MIDI access is denied
         if (!navigator.requestMIDIAccess) {
@@ -621,7 +621,7 @@
         document.getElementById('aboutBtn').onclick = function() {
             document.getElementById('aboutModal').style.display = 'flex';
             document.getElementById('aboutYear').textContent = new Date().getFullYear();
-            document.getElementById('aboutLastUpdated').textContent = LAST_UPDATED; // Update this with the actual last updated date
+            document.getElementById('aboutLastUpdated').textContent = LAST_UPDATED;
         };
         document.getElementById('aboutOkBtn').onclick = function() {
             document.getElementById('aboutModal').style.display = 'none';
