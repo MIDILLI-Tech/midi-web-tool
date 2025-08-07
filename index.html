@@ -29,16 +29,52 @@
             background: #4B5563;
             color: #FFF;
         }
-        #aboutBtn, #aboutOkBtn, #clearBtn, #exportBtn, #maxMessagesInput, #filtersBtn, #sendBtn, #connectBtn, #disconnectBtn, #refreshBtn, #toggleRawFormat {
+        #aboutBtn, #aboutOkBtn, #clearBtn, #exportBtn, #maxMessagesInput, #filtersBtn, #filtersOkBtn, #sendBtn, #connectBtn, #disconnectBtn, #refreshBtn, #toggleRawFormat {
             background: #2D3748;
             color: #FFF;
             border: 1px solid #FFF;
         }
-        #aboutBtn:hover, #aboutOkBtn:hover, #exportBtn:hover, #filtersBtn:hover, #sendBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #refreshBtn:hover, #toggleRawFormat:hover {
+        #aboutBtn:hover, #aboutOkBtn:hover, #exportBtn:hover, #filtersBtn:hover, #filtersOkBtn:hover, #sendBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #refreshBtn:hover, #toggleRawFormat:hover {
             background: #FFF;
             color: #222222;
         }
         a { color: #FFF; }
+        /* Responsive: Make #inputs contents larger on mobile */
+        @media (max-width: 1000px) {
+            #inputs {
+                font-size: 1.4em;
+                flex-direction: column;
+                gap: 1.5em;
+            }
+            #inputs label,
+            #inputs select,
+            #inputs button {
+                font-size: 1.50em;
+                padding: 10px 18px;
+            }
+            #inputs input[type="number"] {
+                font-size: 1em;
+                padding: 10px 18px;
+            }
+            #inputs input[type="checkbox"] {
+                font-size: 1.20em;
+                padding: 10px 18px;
+                width: 1.2em;
+                height: 1.2em;
+            }
+            #inputs select {
+                min-width: 90vw;
+            }
+            #inputs > div {
+                flex-direction: column;
+                gap: 1em;
+            }
+            #aboutModal {
+                padding: 1.5em;
+                max-width: 90vw;
+                font-size: 1.5em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -115,7 +151,7 @@
                     </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:1em; margin-top:1.5em;">
-                    <button id="filtersOkBtn" style="background:#444; color:#fff; border:none; padding:8px 22px; border-radius:4px; font-size:1em; cursor:pointer;">OK</button>
+                    <button id="filtersOkBtn">OK</button>
                 </div>
             </form>
         </div>
@@ -139,7 +175,9 @@
                 Enable Auto Scroll to keep the latest messages in view.
             </p>
             <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.<br>MIDILLI MIDI Web Tool Version: <span id="aboutLastUpdated"></span></p>
-            <button id="aboutOkBtn" style="margin-top:1.5em; background:#444; color:#fff; border:none; padding:8px 22px; border-radius:4px; font-size:1em; cursor:pointer;">OK</button>
+            <div id="inputs">
+                <button id="aboutOkBtn">OK</button>
+            </div>
         </div>
     </div>
     <table>
