@@ -97,18 +97,18 @@ var MIDIEngine = (function () {
   let currentInput = null;
   let currentOutput = null;
 
-function init() {
-  return navigator.requestMIDIAccess({ sysex: true }).then((access) => {
-    console.log("✅ MIDI access granted");
-    midiAccess = access;
-    midiInputs = Array.from(midiAccess.inputs.values());
-    midiOutputs = Array.from(midiAccess.outputs.values());
-    console.log("🎹 Inputs:", midiInputs.map(i => i.name));
-    console.log("📤 Outputs:", midiOutputs.map(o => o.name));
-  }, (err) => {
-    console.error("❌ MIDI access DENIED:", err);
-  });
-}
+  function init() {
+    return navigator.requestMIDIAccess({ sysex: true }).then((access) => {
+      console.log("✅ MIDI access granted");
+      midiAccess = access;
+      midiInputs = Array.from(midiAccess.inputs.values());
+      midiOutputs = Array.from(midiAccess.outputs.values());
+      console.log("🎹 Inputs:", midiInputs.map(i => i.name));
+      console.log("📤 Outputs:", midiOutputs.map(o => o.name));
+    }, (err) => {
+      console.error("❌ MIDI access DENIED:", err);
+    });
+  }
 
   // Refreshes the list of MIDI input and output devices
   function refresh_devices() {
