@@ -223,6 +223,7 @@
                 <label for="pianoRollNoteMax" style="font-size:0.95em; color:#aaa;">Note Max:</label>
                 <select id="pianoRollNoteMax" style="font-size:1em; padding:2px 6px;"></select>
                 <button id="pianoRollPlayPauseBtn" style="margin-left:1em; font-size:1em; padding:2px 10px;">Pause</button>
+                <button id="pianoRollClearBtn" style="margin-left:1em; font-size:1em; padding:2px 10px;">Clear</button>
             </div>
             <canvas id="pianoRollCanvas" width="900" height="220" style="background:#111; border-radius:6px; margin-bottom:1em; width:90vw; max-width:900px; height:220px;"></canvas>
             <div id="pianoRollLegend" style="display:flex; align-items:center; gap:10px; margin-bottom:1em; width:90vw; max-width:900px;">
@@ -1136,6 +1137,13 @@
                     stopPianoRollAnim();
                 }
             };
+
+            // Clear button logic for Piano Roll
+            document.getElementById('pianoRollClearBtn').onclick = function() {
+                pianoRollEvents = [];
+                drawPianoRoll();
+            };
+
             // Populate note dropdowns
             const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
             const noteMinSel = document.getElementById('pianoRollNoteMin');
