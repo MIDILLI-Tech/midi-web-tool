@@ -210,6 +210,17 @@ var MIDIEngine = (function () {
     }
   }
 
+  // Deinitialize MIDI: close ports and release references
+  // Need to init() again to reinitialize MIDI access
+  function deinit() {
+    close_input_port();
+    close_output_port();
+    midiInputs = [];
+    midiOutputs = [];
+    midiAccess = null;
+    console.log("🛑 MIDI deinitialized and devices released.");
+  }
+
   return {
     // Input
     init,
@@ -228,6 +239,8 @@ var MIDIEngine = (function () {
     is_output_port_open,
     send_message,
     // refresh_devices
-    refresh_devices
+    refresh_devices,
+    // Deinitialize
+    deinit
   };
 })();
