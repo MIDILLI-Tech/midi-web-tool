@@ -1030,7 +1030,12 @@
                     }
                 }
                 if (found) {
-                    tooltip.textContent = `Velocity: ${found.velocity}  Note: ${found.note}`;
+                    // Convert MIDI note number to note name
+                    const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+                    const noteNum = found.note;
+                    const octave = Math.floor(noteNum / 12) - 1;
+                    const noteName = noteNames[noteNum % 12] + octave;
+                    tooltip.textContent = `Velocity: ${found.velocity}  Note: ${found.note} (${noteName})`;
                     // Use pageX/pageY for correct positioning
                     tooltip.style.left = (mouseX + canvas.getBoundingClientRect().left + 12) + 'px';
                     tooltip.style.top = (mouseY + canvas.getBoundingClientRect().top + 8) + 'px';
