@@ -29,12 +29,12 @@
             background: #4B5563;
             color: #FFF;
         }
-        #aboutBtn, #aboutOkBtn, #clearBtn, #exportBtn, #maxMessagesInput, #filtersBtn, #filtersOkBtn, #sendBtn, #connectBtn, #disconnectBtn, #refreshBtn, #toggleRawFormat {
+        button, input[type="button"] {
             background: #2D3748;
             color: #FFF;
             border: 1px solid #FFF;
         }
-        #aboutBtn:hover, #aboutOkBtn:hover, #exportBtn:hover, #filtersBtn:hover, #filtersOkBtn:hover, #sendBtn:hover, #clearBtn:hover, #connectBtn:hover, #disconnectBtn:hover, #refreshBtn:hover, #toggleRawFormat:hover {
+        button:hover, input[type="button"]:hover {
             background: #FFF;
             color: #222222;
         }
@@ -160,24 +160,61 @@
         </select>
         <button id="sendBtn">Send</button>
         <div style="flex:1"></div>
+        <button id="pianoRollBtn" style="margin-left:1em;">Piano Roll</button>
         <button id="aboutBtn">Help/About</button>
     </div>
     <div id="aboutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
         <div style="background:#222; color:#fff; padding:2em 2em 1.5em 2em; border-radius:8px; max-width:90vw; max-height:90vh; box-shadow:0 4px 32px #000;">
             <h2 style="margin-top:0;">About</h2>
-            <p>
-                This MIDI tool allows you to monitor all incoming MIDI messages from your selected devices and send custom MIDI messages to any connected output device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
-                You can export your log using the Export button—choose to export all columns (press 1) or only raw MIDI messages (press 2). The Filters button lets you select which message types and channels you want to see in the log. Use the "Show last" box to limit how many recent messages are displayed. The button in the Raw Message column lets you toggle between hexadecimal and decimal display for message data.<br><br>
-                Supported browsers include Google Chrome, Edge, and Firefox (experimental). If you do not see your MIDI device, please ensure permission is granted, the device is connected and not in use by another application, then refresh the page.<br>
-                After connecting a new device, use the Refresh Devices button to update the device list.<br><br>
-                To monitor, select one or more MIDI input devices (hold Ctrl/Cmd to select multiple) and press Connect. To send messages, select a MIDI output device and use the Send button.<br>
-                You can disconnect inputs at any time by clicking Disconnect.<br>
-                Enable Auto Scroll to keep the latest messages in view.
-            </p>
+            <div style="max-height: 32vh; overflow-y: auto; padding-right: 0.5em;">
+                <p>
+                    This MIDI tool allows you to monitor all incoming MIDI messages from your selected devices and send custom MIDI messages to any connected output device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
+                    You can export your log using the Export button—choose to export all columns (press 1) or only raw MIDI messages (press 2). The Filters button lets you select which message types and channels you want to see in the log. Use the "Show last" box to limit how many recent messages are displayed. The button in the Raw Message column lets you toggle between hexadecimal and decimal display for message data.<br><br>
+                    Supported browsers include Google Chrome, Edge, and Firefox (experimental). If you do not see your MIDI device, please ensure permission is granted, the device is connected and not in use by another application, then refresh the page.<br>
+                    After connecting a new device, use the Refresh Devices button to update the device list.<br><br>
+                    To monitor, select one or more MIDI input devices (hold Ctrl/Cmd to select multiple) and press Connect. To send messages, select a MIDI output device and use the Send button.<br>
+                    You can disconnect inputs at any time by clicking Disconnect.<br>
+                    Enable Auto Scroll to keep the latest messages in view.
+                </p>
+                <hr style="margin:1em 0; border:0; border-top:1px solid #444;">
+                <strong>Piano Roll:</strong>
+                <div style="text-align:left; margin:0.5em 0 0 1.2em; color:#bbb; font-size:1em;">
+                    The Piano Roll displays recent MIDI notes visually as bars, where the length of each bar represents the duration of the note and the color indicates its velocity (intensity). 
+                    You can adjust how many seconds of note history are shown, and set the minimum and maximum note range to change the scale. 
+                    Both Note On and Note Off events are recorded and displayed as bars. 
+                    Hovering your mouse over a note bar will show its velocity and note value. 
+                    You can pause or resume the Piano Roll display at any time using the Pause button.
+                </div>
+            </div>
             <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.<br>MIDILLI MIDI Web Tool Version: <span id="aboutLastUpdated"></span></p>
             <div id="inputs">
                 <button id="aboutOkBtn">OK</button>
             </div>
+        </div>
+    </div>
+    <!-- Piano Roll Modal -->
+    <div id="pianoRollModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:#222; color:#fff; padding:1em 1em 1em 1em; border-radius:8px; max-width:95vw; max-height:90vh; box-shadow:0 4px 32px #000; display:flex; flex-direction:column; align-items:center;">
+            <h2 style="margin-top:0;">
+                Piano Roll (Last 
+                <input id="pianoRollSecondsInput" type="number" min="1" max="60" value="10" style="width:3em; font-size:1em; padding:2px 4px; margin:0 2px; text-align:right;" title="Set piano roll duration in seconds">
+                seconds)
+            </h2>
+            <div style="display:flex; align-items:center; gap:1em; margin-bottom:0.7em;">
+                <label for="pianoRollNoteMin" style="font-size:0.95em; color:#aaa;">Note Min:</label>
+                <select id="pianoRollNoteMin" style="font-size:1em; padding:2px 6px;"></select>
+                <label for="pianoRollNoteMax" style="font-size:0.95em; color:#aaa;">Note Max:</label>
+                <select id="pianoRollNoteMax" style="font-size:1em; padding:2px 6px;"></select>
+                <button id="pianoRollPlayPauseBtn" style="margin-left:1em; font-size:1em; padding:2px 10px;">Pause</button>
+            </div>
+            <canvas id="pianoRollCanvas" width="900" height="220" style="background:#111; border-radius:6px; margin-bottom:1em; width:90vw; max-width:900px; height:220px;"></canvas>
+            <div id="pianoRollLegend" style="display:flex; align-items:center; gap:10px; margin-bottom:1em; width:90vw; max-width:900px;">
+                <span style="font-size:0.95em; color:#aaa;">Velocity:</span>
+                <span style="font-size:0.95em; color:#aaa;">0</span>
+                <div style="flex:1; height:18px; background: linear-gradient(to right, rgb(0,120,255) 0%, rgb(0,255,255) 33%, rgb(255,255,0) 67%, rgb(255,60,60) 100%); border-radius:4px;"></div>
+                <span style="font-size:0.95em; color:#aaa;">127</span>
+            </div>
+            <button id="pianoRollCloseBtn" style="margin-top:0.5em;">Close</button>
         </div>
     </div>
     <table>
@@ -199,7 +236,7 @@
 
     <script src="midi.js"></script>
     <script>
-        LAST_UPDATED = "07.08.2025"; // Update this with the actual last updated date
+        LAST_UPDATED = "08.08.2025"; // Update this with the actual last updated date
         let rawFormat = 'hex';
         // Show error if MIDI access is denied
         if (!navigator.requestMIDIAccess) {
@@ -471,6 +508,18 @@
             const hex = Array.from(data).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
             const dec = Array.from(data).join(' ');
 
+            // Piano roll: listen for Note On/Off
+            if (data[0] >= 0x80 && data[0] <= 0x9F) {
+                const noteNumber = data[1];
+                if ((data[0] & 0xF0) === 0x90 && data[2] > 0) {
+                    // Note On with velocity > 0
+                    addPianoRollEvent(noteNumber, data[2], true);
+                } else {
+                    // Note Off (0x80) or Note On with velocity 0
+                    addPianoRollEvent(noteNumber, data[2], false);
+                }
+            }
+
             // Remove any ( ... ) from type for filtering
             const typeForFilter = type.replace(/\s*\(.*\)/, '');
             let show = true;
@@ -484,7 +533,8 @@
                 value,
                 channel,
                 device,
-                raw: `<span class="raw-msg" data-hex="${hex}" data-dec="${dec}">${rawFormat === 'hex' ? hex : dec}</span>`
+                raw: `<span class="raw-msg" data-hex="${hex}" data-dec="${dec}">${rawFormat === 'hex' ? hex : dec}</span>`,
+                data
             });
 
         };
@@ -574,6 +624,323 @@
             populateInputs();
             showNotification('Refreshed devices!');
         };
+
+        // --- Piano Roll State ---
+        // Store note events as {note, velocity, on, timestamp}
+        let pianoRollEvents = [];
+        const PIANO_ROLL_WINDOW = 10 * 1000; // 10 seconds in ms
+
+        // Draw piano roll
+        function drawPianoRoll() {
+            const canvas = document.getElementById('pianoRollCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Her karede güncel zaman al
+            const now = Date.now();
+
+            // Get current window from input
+            const secondsInput = document.getElementById('pianoRollSecondsInput');
+            let timeWindow = PIANO_ROLL_WINDOW;
+            if (secondsInput && !isNaN(parseInt(secondsInput.value))) {
+                timeWindow = parseInt(secondsInput.value) * 1000;
+            }
+
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Get note range from dropdowns
+            let noteMin = 21;
+            let noteMax = 108;
+            const noteMinSel = document.getElementById('pianoRollNoteMin');
+            const noteMaxSel = document.getElementById('pianoRollNoteMax');
+            if (noteMinSel && noteMaxSel) {
+                noteMin = parseInt(noteMinSel.value);
+                noteMax = parseInt(noteMaxSel.value);
+                if (isNaN(noteMin) || noteMin < 0) noteMin = 0;
+                if (isNaN(noteMax) || noteMax > 108) noteMax = 108;
+                if (noteMin > noteMax) noteMin = noteMax;
+            }
+            const noteCount = noteMax - noteMin + 1;
+            const rowHeight = height / noteCount;
+
+            // Draw note rows
+            for (let i = 0; i < noteCount; i++) {
+                ctx.fillStyle = (i % 2 === 0) ? "#181818" : "#222";
+                ctx.fillRect(0, i * rowHeight, width, rowHeight);
+            }
+
+            // Draw note labels (C notes)
+            ctx.font = "10px Arial";
+            ctx.fillStyle = "#888";
+            for (let n = noteMin; n <= noteMax; n++) {
+                if ((n % 12) === 0) {
+                    const y = height - ((n - noteMin + 1) * rowHeight) + rowHeight / 2 + 4;
+                    ctx.fillText("C" + (Math.floor(n / 12) - 1), 2, y);
+                }
+            }
+
+            // Velocity renk hesaplama
+            function velocityToColor(velocity) {
+                const stops = [
+                    { v: 0, color: [0, 120, 255] },
+                    { v: 42, color: [0, 255, 255] },
+                    { v: 85, color: [255, 255, 0] },
+                    { v: 127, color: [255, 60, 60] }
+                ];
+                let c1, c2;
+                for (let i = 0; i < stops.length - 1; i++) {
+                    if (velocity >= stops[i].v && velocity <= stops[i + 1].v) {
+                        c1 = stops[i];
+                        c2 = stops[i + 1];
+                        break;
+                    }
+                }
+                if (!c1 || !c2) return "rgb(255,255,255)";
+                const t = (velocity - c1.v) / (c2.v - c1.v);
+                const r = Math.round(c1.color[0] + (c2.color[0] - c1.color[0]) * t);
+                const g = Math.round(c1.color[1] + (c2.color[1] - c1.color[1]) * t);
+                const b = Math.round(c1.color[2] + (c2.color[2] - c1.color[2]) * t);
+                return `rgb(${r},${g},${b})`;
+            }
+
+            // Store bar positions for tooltip
+            window._pianoRollBarRects = [];
+
+            // Çubukları çiz
+            pianoRollEvents.forEach(ev => {
+                if (ev.note < noteMin || ev.note > noteMax) return;
+
+                const startTime = ev.timestamp;
+                const endTime = ev.on ? now : (ev.offTimestamp || now);
+
+                if (endTime < now - timeWindow) return;
+                if (startTime > now) return;
+
+                const barStart = Math.max(startTime, now - timeWindow);
+                const barEnd = ev.on ? now : Math.min(endTime, now);
+
+                const barStartX = width - ((now - barStart) / timeWindow) * width;
+                const barEndX = width - ((now - barEnd) / timeWindow) * width;
+                const y = (noteMax - ev.note) * rowHeight;
+
+                // Ensure barStartX is less than barEndX for left-to-right drawing
+                const leftX = Math.min(barStartX, barEndX);
+                const barWidth = Math.abs(barEndX - barStartX);
+
+                // Set color based on velocity
+                ctx.fillStyle = velocityToColor(ev.velocity || 0);
+
+                if (barWidth > 0) {
+                    ctx.fillRect(leftX, y, barWidth, rowHeight - 1);
+
+                    // Store rect for tooltip
+                    window._pianoRollBarRects.push({
+                        x: leftX,
+                        y: y - 2,
+                        width: barWidth,
+                        height: rowHeight + 4,
+                        velocity: ev.velocity,
+                        note: ev.note
+                    });
+                }
+            });
+        }
+
+        // Tooltip for velocity on hover
+        (function setupPianoRollTooltip() {
+            let tooltip = document.getElementById('pianoRollTooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'pianoRollTooltip';
+                tooltip.style.position = 'fixed';
+                tooltip.style.pointerEvents = 'none';
+                tooltip.style.background = 'rgba(0,0,0,0.85)';
+                tooltip.style.color = '#fff';
+                tooltip.style.padding = '4px 10px';
+                tooltip.style.borderRadius = '5px';
+                tooltip.style.fontSize = '1em';
+                tooltip.style.zIndex = 9999;
+                tooltip.style.display = 'none';
+                document.body.appendChild(tooltip);
+            }
+            const canvas = document.getElementById('pianoRollCanvas');
+            if (!canvas) return;
+            // Track mouse position for tooltip
+            let mouseX = null, mouseY = null, mouseInside = false;
+
+            canvas.addEventListener('mousemove', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+                mouseInside = true;
+            });
+            canvas.addEventListener('mouseleave', function() {
+                mouseInside = false;
+                tooltip.style.display = 'none';
+            });
+
+            // Update tooltip on every animation frame or mouse move
+            function updatePianoRollTooltip() {
+                if (!mouseInside || mouseX === null || mouseY === null) {
+                    tooltip.style.display = 'none';
+                    return;
+                }
+                if (!window._pianoRollBarRects) return;
+                let found = null;
+                for (const bar of window._pianoRollBarRects) {
+                    if (
+                        mouseX >= bar.x &&
+                        mouseX <= bar.x + bar.width &&
+                        mouseY >= bar.y &&
+                        mouseY <= bar.y + bar.height
+                    ) {
+                        found = bar;
+                    }
+                }
+                if (found) {
+                    tooltip.textContent = `Velocity: ${found.velocity}  Note: ${found.note}`;
+                    // Use pageX/pageY for correct positioning
+                    tooltip.style.left = (mouseX + canvas.getBoundingClientRect().left + 12) + 'px';
+                    tooltip.style.top = (mouseY + canvas.getBoundingClientRect().top + 8) + 'px';
+                    tooltip.style.display = '';
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            }
+
+            // Always update tooltip on mouse move, even if paused
+            canvas.addEventListener('mousemove', function() {
+                updatePianoRollTooltip();
+            });
+
+            // Hook into piano roll animation
+            let origDrawPianoRoll = drawPianoRoll;
+            drawPianoRoll = function() {
+                origDrawPianoRoll();
+                updatePianoRollTooltip();
+            };
+        })();
+
+        // Add note event to piano roll
+        function addPianoRollEvent(note, velocity, on) {
+            const now = Date.now();
+
+            if (on) {
+                // Same note, skip adding
+                // const existing = pianoRollEvents.find(ev => ev.note === note && ev.on);
+                if (!false) {
+                    pianoRollEvents.push({
+                        note,
+                        velocity,
+                        on: true,
+                        timestamp: now
+                    });
+                } else {
+                    existing.velocity = velocity; // keep velocity updated
+                }
+            } else {
+                // Note Off: close event
+                for (let i = pianoRollEvents.length - 1; i >= 0; i--) {
+                    if (pianoRollEvents[i].note === note && pianoRollEvents[i].on) {
+                        pianoRollEvents[i].on = false;
+                        pianoRollEvents[i].offTimestamp = now;
+                        //break;
+                    }
+                }
+            }
+
+            // delete old events
+            pianoRollEvents = pianoRollEvents.filter(ev =>
+                ev.on || now - (ev.offTimestamp || ev.timestamp) <= PIANO_ROLL_WINDOW
+            );
+        }
+
+        function setupPianoRollModal() {
+            let isPianoRollPlaying = true;
+            let pianoRollAnimInterval = null;
+
+            function startPianoRollAnim() {
+                if (!pianoRollAnimInterval) {
+                    pianoRollAnimInterval = setInterval(drawPianoRoll, 60);
+                }
+            }
+            function stopPianoRollAnim() {
+                if (pianoRollAnimInterval) {
+                    clearInterval(pianoRollAnimInterval);
+                    pianoRollAnimInterval = null;
+                }
+            }
+
+            document.getElementById('pianoRollBtn').onclick = function() {
+                document.getElementById('pianoRollModal').style.display = 'flex';
+                drawPianoRoll();
+                isPianoRollPlaying = true;
+                document.getElementById('pianoRollPlayPauseBtn').textContent = 'Pause';
+                startPianoRollAnim();
+            };
+            document.getElementById('pianoRollCloseBtn').onclick = function() {
+                document.getElementById('pianoRollModal').style.display = 'none';
+                stopPianoRollAnim();
+            };
+            document.getElementById('pianoRollModal').onclick = function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                    stopPianoRollAnim();
+                }
+            };
+            // Play/Pause button logic
+            document.getElementById('pianoRollPlayPauseBtn').onclick = function() {
+                isPianoRollPlaying = !isPianoRollPlaying;
+                if (isPianoRollPlaying) {
+                    this.textContent = 'Pause';
+                    startPianoRollAnim();
+                } else {
+                    this.textContent = 'Play';
+                    stopPianoRollAnim();
+                }
+            };
+            // Populate note dropdowns
+            const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+            const noteMinSel = document.getElementById('pianoRollNoteMin');
+            const noteMaxSel = document.getElementById('pianoRollNoteMax');
+            if (noteMinSel && noteMaxSel) {
+                noteMinSel.innerHTML = "";
+                noteMaxSel.innerHTML = "";
+                for (let n = 0; n <= 108; n++) {
+                    const octave = Math.floor(n / 12) - 1;
+                    const name = noteNames[n % 12] + octave;
+                    const optMin = document.createElement('option');
+                    optMin.value = n;
+                    optMin.textContent = name + " (" + n + ")";
+                    noteMinSel.appendChild(optMin);
+                    const optMax = document.createElement('option');
+                    optMax.value = n;
+                    optMax.textContent = name + " (" + n + ")";
+                    noteMaxSel.appendChild(optMax);
+                }
+                // Defaults: C0 (12) to C8 (108)
+                noteMinSel.value = "12";
+                noteMaxSel.value = "108";
+                // Ensure min cannot be above max and vice versa
+                noteMinSel.onchange = function() {
+                    if (parseInt(noteMinSel.value) > parseInt(noteMaxSel.value)) {
+                        noteMaxSel.value = noteMinSel.value;
+                    }
+                    drawPianoRoll();
+                };
+                noteMaxSel.onchange = function() {
+                    if (parseInt(noteMaxSel.value) < parseInt(noteMinSel.value)) {
+                        noteMinSel.value = noteMaxSel.value;
+                    }
+                    drawPianoRoll();
+                };
+            }
+        }
+
+        // Call setupPianoRollModal to enable Piano Roll functionality
+        setupPianoRollModal();
 
         // Show customizable notification
         function showNotification(text, duration = 1500) {
@@ -692,5 +1059,4 @@
         };
     </script>
 </body>
-</html>
 </html>
