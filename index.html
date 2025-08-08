@@ -161,6 +161,23 @@
         <button id="sendBtn">Send</button>
         <div style="flex:1"></div>
         <button id="pianoRollBtn" style="margin-left:1em;">Piano Roll</button>
+        <button id="ccAnalyzerBtn" style="margin-left:1em;">CC Analyzer</button>
+        <!-- CC Analyzer Modal -->
+        <div id="ccAnalyzerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+            <div style="background:#222; color:#fff; padding:1em 1em 1em 1em; border-radius:8px; max-width:95vw; max-height:90vh; box-shadow:0 4px 32px #000; display:flex; flex-direction:column; align-items:center;">
+                <h2 style="margin-top:0;">CC Analyzer</h2>
+                <div style="font-size:0.95em; color:#bbb; margin-bottom:0.5em;">
+                    Hold <b>Ctrl</b> (Windows) or <b>Cmd</b> (Mac) and click to select up to 4 CC numbers.
+                </div>
+                <div style="display:flex; align-items:center; gap:1em; margin-bottom:0.7em;">
+                    <label for="ccAnalyzerCCSelect" style="font-size:0.95em; color:#aaa;">CC Numbers:</label>
+                    <select id="ccAnalyzerCCSelect" multiple size="6" style="font-size:1em; padding:2px 6px; min-width:90px;" title="Select up to 4 CC numbers"></select>
+                    <button id="ccAnalyzerClearBtn" style="margin-left:1em; font-size:1em; padding:2px 10px;">Clear</button>
+                </div>
+                <canvas id="ccAnalyzerCanvas" width="800" height="220" style="background:#111; border-radius:6px; margin-bottom:1em; width:90vw; max-width:800px; height:220px;"></canvas>
+                <button id="ccAnalyzerCloseBtn" style="margin-top:0.5em;">Close</button>
+            </div>
+        </div>
         <button id="aboutBtn">Help/About</button>
     </div>
     <div id="aboutModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
@@ -382,6 +399,10 @@
             return { type: "Unknown", channel: "n/a", value: "" };
         }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            setupCCAnalyzerModal();
+        });
+
         // Fill input select
         async function populateInputs() {
             await MIDIEngine.init();
@@ -520,6 +541,23 @@
                 }
             }
 
+            // CC Analyzer: store CC values for analyzer
+            if ((data[0] & 0xF0) === 0xB0 && typeof data[1] === "number" && typeof data[2] === "number") {
+                const ccNum = data[1];
+                if (!ccAnalyzerData[ccNum]) ccAnalyzerData[ccNum] = [];
+                ccAnalyzerData[ccNum].push(data[2]);
+                // Limit to last 100 values for performance
+                if (ccAnalyzerData[ccNum].length > 100) ccAnalyzerData[ccNum] = ccAnalyzerData[ccNum].slice(-100);
+                // If analyzer is open and showing any selected CC, redraw
+                if (document.getElementById('ccAnalyzerModal').style.display !== 'none') {
+                    const ccSelect = document.getElementById('ccAnalyzerCCSelect');
+                    const selected = Array.from(ccSelect.selectedOptions).map(opt => parseInt(opt.value));
+                    if (selected.includes(ccNum)) {
+                        drawCCAnalyzer();
+                    }
+                }
+            }
+
             // Remove any ( ... ) from type for filtering
             const typeForFilter = type.replace(/\s*\(.*\)/, '');
             let show = true;
@@ -624,6 +662,198 @@
             populateInputs();
             showNotification('Refreshed devices!');
         };
+        let ccAnalyzerData = {}; // {ccNumber: [values]}
+        let ccAnalyzerSelectedCCs = [1];
+        const CC_COLORS = ["#00eaff", "#ffb300", "#e91e63", "#4caf50"];
+        function setupCCAnalyzerModal() {
+            // Populate CC select
+            const ccSelect = document.getElementById('ccAnalyzerCCSelect');
+            if (ccSelect) {
+                ccSelect.innerHTML = "";
+                for (let i = 0; i <= 127; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = "CC " + i;
+                    ccSelect.appendChild(opt);
+                }
+                // Default: select CC 1
+                ccSelect.selectedIndex = 1;
+                ccAnalyzerSelectedCCs = [1];
+                ccSelect.onchange = function() {
+                    // Allow up to 4 selections
+                    let selected = Array.from(ccSelect.selectedOptions).map(opt => parseInt(opt.value));
+                    if (selected.length > 4) {
+                        // Deselect the last selected if over 4
+                        ccSelect.options[ccSelect.selectedIndex].selected = false;
+                        selected = Array.from(ccSelect.selectedOptions).map(opt => parseInt(opt.value));
+                        alert("You can select up to 4 CC numbers.");
+                    }
+                    ccAnalyzerSelectedCCs = selected.length ? selected : [1];
+                    drawCCAnalyzer();
+                };
+            }
+            document.getElementById('ccAnalyzerBtn').onclick = function() {
+                document.getElementById('ccAnalyzerModal').style.display = 'flex';
+                drawCCAnalyzer();
+            };
+            document.getElementById('ccAnalyzerCloseBtn').onclick = function() {
+                document.getElementById('ccAnalyzerModal').style.display = 'none';
+            };
+            document.getElementById('ccAnalyzerModal').onclick = function(e) {
+                if (e.target === this) this.style.display = 'none';
+            };
+            document.getElementById('ccAnalyzerClearBtn').onclick = function() {
+                ccAnalyzerSelectedCCs.forEach(cc => ccAnalyzerData[cc] = []);
+                drawCCAnalyzer();
+            };
+        }
+        function drawCCAnalyzer() {
+            const canvas = document.getElementById('ccAnalyzerCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Store bar rects for tooltip
+            window._ccAnalyzerBarRects = [];
+
+            const N = 40;
+            const barWidth = Math.max(6, Math.floor(canvas.width / N) - 2);
+            const maxHeight = canvas.height - 30;
+            ctx.strokeStyle = "#444";
+            ctx.beginPath();
+            ctx.moveTo(0, maxHeight);
+            ctx.lineTo(canvas.width, maxHeight);
+            ctx.stroke();
+
+            // Draw bars for each selected CC, stacked
+            ccAnalyzerSelectedCCs.forEach((cc, idx) => {
+                const values = ccAnalyzerData[cc] || [];
+                for (let i = 0; i < N; i++) {
+                    const v = values[values.length - N + i];
+                    if (v === undefined) continue;
+                    const h = Math.round((v / 127) * (maxHeight / ccAnalyzerSelectedCCs.length));
+                    // Stack bars for each CC
+                    const yOffset = idx * (maxHeight / ccAnalyzerSelectedCCs.length);
+                    ctx.fillStyle = CC_COLORS[idx % CC_COLORS.length];
+                    const x = i * (barWidth + 2) + 20;
+                    const y = maxHeight - h - yOffset;
+                    ctx.fillRect(x, y, barWidth, h);
+
+                    // Store rect for tooltip
+                    window._ccAnalyzerBarRects.push({
+                        x: x,
+                        y: y,
+                        width: barWidth,
+                        height: h,
+                        value: v,
+                        cc: cc
+                    });
+                }
+            });
+
+            // Draw value text for each CC with background for readability
+            ctx.font = "bold 1.1em Arial";
+            ccAnalyzerSelectedCCs.forEach((cc, idx) => {
+                const values = ccAnalyzerData[cc] || [];
+                if (values.length > 0) {
+                    const text = "CC " + cc + ": " + values[values.length - 1];
+                    const x = 20 + idx * 120;
+                    const y = 20;
+                    // Measure text width and height
+                    const metrics = ctx.measureText(text);
+                    const textWidth = metrics.width;
+                    const textHeight = 18;
+                    // Draw semi-transparent background
+                    ctx.save();
+                    ctx.globalAlpha = 0.6;
+                    ctx.fillStyle = "#222";
+                    ctx.fillRect(x - 4, y - textHeight + 4, textWidth + 8, textHeight);
+                    ctx.restore();
+                    // Draw text
+                    ctx.fillStyle = CC_COLORS[idx % CC_COLORS.length];
+                    ctx.fillText(text, x, y);
+                }
+            });
+
+            // Draw Y axis labels for each CC section
+            ctx.fillStyle = "#aaa";
+            ctx.font = "0.9em Arial";
+            ccAnalyzerSelectedCCs.forEach((cc, idx) => {
+                const sectionHeight = maxHeight / ccAnalyzerSelectedCCs.length;
+                const yTop = idx * sectionHeight + 12;
+                const yBottom = (idx + 1) * sectionHeight;
+                ctx.fillText("127", 2, yTop);
+                ctx.fillText("0", 6, yBottom);
+            });
+        }
+
+        // Tooltip for CC Analyzer bars
+        (function setupCCAnalyzerTooltip() {
+            let tooltip = document.getElementById('ccAnalyzerTooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'ccAnalyzerTooltip';
+                tooltip.style.position = 'fixed';
+                tooltip.style.pointerEvents = 'none';
+                tooltip.style.background = 'rgba(0,0,0,0.85)';
+                tooltip.style.color = '#fff';
+                tooltip.style.padding = '4px 10px';
+                tooltip.style.borderRadius = '5px';
+                tooltip.style.fontSize = '1em';
+                tooltip.style.zIndex = 9999;
+                tooltip.style.display = 'none';
+                document.body.appendChild(tooltip);
+            }
+            const canvas = document.getElementById('ccAnalyzerCanvas');
+            if (!canvas) return;
+            let mouseX = null, mouseY = null, mouseInside = false;
+
+            canvas.addEventListener('mousemove', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+                mouseInside = true;
+                updateCCAnalyzerTooltip();
+            });
+            canvas.addEventListener('mouseleave', function() {
+                mouseInside = false;
+                tooltip.style.display = 'none';
+            });
+
+            function updateCCAnalyzerTooltip() {
+                if (!mouseInside || mouseX === null || mouseY === null) {
+                    tooltip.style.display = 'none';
+                    return;
+                }
+                if (!window._ccAnalyzerBarRects) return;
+                let found = null;
+                for (const bar of window._ccAnalyzerBarRects) {
+                    if (
+                        mouseX >= bar.x &&
+                        mouseX <= bar.x + bar.width &&
+                        mouseY >= bar.y &&
+                        mouseY <= bar.y + bar.height
+                    ) {
+                        found = bar;
+                    }
+                }
+                if (found) {
+                    tooltip.textContent = `CC ${found.cc}: ${found.value}`;
+                    tooltip.style.left = (mouseX + canvas.getBoundingClientRect().left + 12) + 'px';
+                    tooltip.style.top = (mouseY + canvas.getBoundingClientRect().top + 8) + 'px';
+                    tooltip.style.display = '';
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            }
+
+            // Redraw tooltip after each draw
+            let origDrawCCAnalyzer = drawCCAnalyzer;
+            drawCCAnalyzer = function() {
+                origDrawCCAnalyzer();
+                updateCCAnalyzerTooltip();
+            };
+        })();
 
         // --- Piano Roll State ---
         // Store note events as {note, velocity, on, timestamp}
