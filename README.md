@@ -1,4 +1,6 @@
-# MIDILLI MIDI Web Tool & MIDI Monitor, Analyzer, and Sender
+# MIDILLI MIDI Web Tool
+
+A MIDI Web Monitor, Analyzer, and Sender
 
 <img width="2372" height="1003" alt="image" src="https://github.com/user-attachments/assets/9db4506d-499c-4777-ae5c-43a4f09803a2" />
 
@@ -11,7 +13,7 @@ The project is based on a single library, **[midi.js](midi.js)**, which is a 1-t
 [rtmidi](https://github.com/thestk/rtmidi) for the web, providing robust MIDI handling in the browser environment  
 with a single HTML file.
 
-**MIDI Monitor & Sender** is integrated into the tool, enabling seamless MIDI message inspection and transmission to 
+**MIDI Web Tool** is integrated into the tool, enabling seamless MIDI message inspection and transmission to 
 connected MIDI devices.
 
 Experience live demos and tools provided and maintained by MIDILLI Tech at [https://midilli.tech](https://midilli.tech).
