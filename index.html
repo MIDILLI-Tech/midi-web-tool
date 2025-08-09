@@ -185,7 +185,7 @@
             <h2 style="margin-top:0;">About</h2>
             <div style="max-height: 32vh; overflow-y: auto; padding-right: 0.5em;">
                 <p>
-                    This MIDI tool allows you to monitor all incoming MIDI messages from your selected devices and send custom MIDI messages to any connected output device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
+                    This open-source MIDI tool allows you to monitor all incoming MIDI messages from your selected devices and send custom MIDI messages to any connected output device, including Note, Control Change (CC), Clock, Program Change (PC), SysEx (System Exclusive), and more.<br><br>
                     You can export your log using the Export button—choose to export all columns (press 1) or only raw MIDI messages (press 2). The Filters button lets you select which message types and channels you want to see in the log. Use the "Show last" box to limit how many recent messages are displayed. The button in the Raw Message column lets you toggle between hexadecimal and decimal display for message data.<br><br>
                     Supported browsers include Google Chrome, Edge, and Firefox (experimental). If you do not see your MIDI device, please ensure permission is granted, the device is connected and not in use by another application, then refresh the page.<br>
                     After connecting a new device, use the Refresh Devices button to update the device list.<br><br>
@@ -211,6 +211,12 @@
                 </div>
             </div>
             <p style="margin-top:2em; font-size:0.95em; color:#aaa;">&copy; 2024 - <span id="aboutYear"></span> <a href="https://midilli.tech" target="_blank" style="color:#aaa; text-decoration:underline;">MIDILLI Tech</a>. All rights reserved.<br>MIDILLI MIDI Web Tool Version: <span id="aboutLastUpdated"></span></p>
+            <p style="margin-top:0.5em; font-size:0.95em; color:#aaa;">
+                You can download or fork this project on GitHub: 
+                <a href="https://github.com/MIDILLI-Tech/midiwebtool" target="_blank" style="color:#aaa; text-decoration:underline;">
+                    https://github.com/MIDILLI-Tech/midiwebtool
+                </a>
+            </p>
             <div id="inputs">
                 <button id="aboutOkBtn">OK</button>
             </div>
@@ -881,8 +887,10 @@
             // Get current window from input
             const secondsInput = document.getElementById('pianoRollSecondsInput');
             let timeWindow = PIANO_ROLL_WINDOW;
+            let secondsValue = 10;
             if (secondsInput && !isNaN(parseInt(secondsInput.value))) {
-                timeWindow = parseInt(secondsInput.value) * 1000;
+                secondsValue = parseInt(secondsInput.value);
+                timeWindow = secondsValue * 1000;
             }
 
             const width = canvas.width;
@@ -984,6 +992,36 @@
                     });
                 }
             });
+
+            // Draw horizontal time axis at the bottom
+            ctx.save();
+            ctx.strokeStyle = "#aaa";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, height - 1);
+            ctx.lineTo(width, height - 1);
+            ctx.stroke();
+
+            // Draw time labels just below the canvas, not inside
+            // So, do NOT draw them on the canvas, but instead update the DOM below the canvas
+            ctx.restore();
+
+            // Update or create time labels below the canvas
+            let timeLabels = document.getElementById('pianoRollTimeLabels');
+            if (!timeLabels) {
+                timeLabels = document.createElement('div');
+                timeLabels.id = 'pianoRollTimeLabels';
+                timeLabels.style.display = 'flex';
+                timeLabels.style.justifyContent = 'space-between';
+                timeLabels.style.width = canvas.style.width || (canvas.width + 'px');
+                timeLabels.style.maxWidth = canvas.style.maxWidth || '900px';
+                timeLabels.style.margin = '0 auto 4px auto';
+                timeLabels.style.font = 'bold 12px Arial';
+                timeLabels.style.color = '#aaa';
+                // Insert after canvas
+                canvas.parentNode.insertBefore(timeLabels, canvas.nextSibling);
+            }
+            timeLabels.innerHTML = `<span>${secondsValue} sec</span><span>${Math.round(secondsValue / 2)} sec</span><span>0 sec</span>`;
         }
 
         // Tooltip for velocity on hover
