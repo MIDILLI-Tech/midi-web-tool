@@ -28,7 +28,9 @@ Experience live demos and tools provided and maintained by MIDILLI Tech at [http
 
 ## Screenshots
 
-<img width="1032" height="650" alt="image" src="https://github.com/user-attachments/assets/ef43a169-9c61-448a-bf55-0f97df91ff02" />CC Analyzer
+<img width="1032" height="650" alt="CC Analyzer" src="https://github.com/user-attachments/assets/ef43a169-9c61-448a-bf55-0f97df91ff02" />CC Analyzer
+
+![midilliwebtool-pianoroll-demo](https://github.com/user-attachments/assets/33340291-889c-420f-9ef5-e55ea89a0410)Piano Roll (GIF, check second link below for audio)
 
 Some more info on these pages: 
 - [MIDI Monitor is Now MIDI Monitor and Sender ](https://midilli.tech/midi-monitor-is-now-midi-monitor-and-sender/)
