@@ -1,5 +1,7 @@
 # MIDILLI MIDI Web Tool & MIDI Monitor, Analyzer, and Sender
 
+<img width="2372" height="1003" alt="image" src="https://github.com/user-attachments/assets/9db4506d-499c-4777-ae5c-43a4f09803a2" />
+
 ## 📌 Project Overview
 
 **MIDILLI MIDI Web Tool** is a powerful web-based MIDI utility, serving as a Swiss Army knife for MIDI tasks. 
@@ -23,6 +25,10 @@ Experience live demos and tools provided and maintained by MIDILLI Tech at [http
 - Message filtering by MIDI channel and message type.
 - Export MIDI data logs.
 - Works on modern browsers supporting Web MIDI API (Chrome, Edge, Firefox experimental).
+
+## Screenshots
+
+<img width="1032" height="650" alt="image" src="https://github.com/user-attachments/assets/ef43a169-9c61-448a-bf55-0f97df91ff02" />CC Analyzer
 
 Some more info on these pages: 
 - [MIDI Monitor is Now MIDI Monitor and Sender ](https://midilli.tech/midi-monitor-is-now-midi-monitor-and-sender/)
