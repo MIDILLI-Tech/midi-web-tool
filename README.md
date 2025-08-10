@@ -28,7 +28,7 @@ Experience live demos and tools provided and maintained by MIDILLI Tech at [http
 - Export MIDI data logs.
 - Works on modern browsers supporting Web MIDI API (Chrome, Edge, Firefox experimental).
 
-## Screenshots
+## 📸 Screenshots
 
 <img width="1032" height="650" alt="CC Analyzer" src="https://github.com/user-attachments/assets/ef43a169-9c61-448a-bf55-0f97df91ff02" />CC Analyzer
 
