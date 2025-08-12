@@ -143,7 +143,7 @@ var MIDIEngine = (function () {
       console.log("📤 Assigned callback");
 
       currentInput.onmidimessage = (event) => {
-        const dataArray = Array.from(event.data);  // e.g.: [176, 15, 0]
+        // const dataArray = Array.from(event.data);  // e.g.: [176, 15, 0]
 
         // console.log("🎵 Incoming MIDI:", dataArray);
 
