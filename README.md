@@ -2,7 +2,7 @@
 
 A MIDI Web Monitor, Analyzer, and Sender
 
-<img width="2372" height="1003" alt="image" src="https://github.com/user-attachments/assets/9db4506d-499c-4777-ae5c-43a4f09803a2" />
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/9db4506d-499c-4777-ae5c-43a4f09803a2" />
 
 ## 📌 Project Overview
 
@@ -30,7 +30,9 @@ Experience live demos and tools provided and maintained by MIDILLI Tech at [http
 
 ## 📸 Screenshots
 
-<img width="1032" height="650" alt="CC Analyzer" src="https://github.com/user-attachments/assets/ef43a169-9c61-448a-bf55-0f97df91ff02" />CC Analyzer
+<img width="600" alt="CC Analyzer" src="https://github.com/user-attachments/assets/ef43a169-9c61-448a-bf55-0f97df91ff02" />
+
+CC Analyzer
 
 ![midilliwebtool-pianoroll-demo](https://github.com/user-attachments/assets/33340291-889c-420f-9ef5-e55ea89a0410)Piano Roll (GIF, check second link below for audio)
 
