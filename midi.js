@@ -23,9 +23,12 @@ limitations under the License.
  *
  * @namespace MIDIEngine
  *
- * @property {function(): Promise<void>} init
- *   Initializes MIDI access and populates input/output port lists.
- *   @returns {Promise<void>} Resolves when MIDI access is granted or logs error if denied.
+ * @property {function(): promise<void>} init
+ *   initializes midi access and populates input/output port lists.
+ *   @returns {promise<void>} resolves when midi access is granted or logs error if denied.
+ *
+ * @property {function(): void} deinit
+ *   Deinitializes MIDI, closes ports, and releases device references.
  *
  * @property {function(): void} refresh_devices
  *   Refreshes the list of available MIDI input and output devices.
