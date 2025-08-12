@@ -725,14 +725,17 @@ limitations under the License.
                 ccSelect.selectedIndex = 1;
                 ccAnalyzerSelectedCCs = [1];
                 ccSelect.onchange = function() {
-                    // Allow up to 4 selections
-                    let selected = Array.from(ccSelect.selectedOptions).map(opt => parseInt(opt.value));
-                    if (selected.length > 4) {
-                        // Deselect the last selected if over 4
-                        ccSelect.options[ccSelect.selectedIndex].selected = false;
-                        selected = Array.from(ccSelect.selectedOptions).map(opt => parseInt(opt.value));
-                        alert("You can select up to 4 CC numbers.");
+                    let selectedOptions = Array.from(ccSelect.selectedOptions);
+                    if (selectedOptions.length > 4) {
+                        // Deselect oldest selections to keep only the last 4
+                        for (let i = 0; i < selectedOptions.length - 4; i++) {
+                            selectedOptions[i].selected = false;
+                        }
+                        alert("You can select up to 4 CC numbers. The oldest selections were removed.");
+                        // Update selectedOptions after deselection
+                        selectedOptions = Array.from(ccSelect.selectedOptions);
                     }
+                    let selected = selectedOptions.map(opt => parseInt(opt.value));
                     ccAnalyzerSelectedCCs = selected.length ? selected : [1];
                     drawCCAnalyzer();
                 };
