@@ -72,7 +72,7 @@ Some more info on these pages:
 
 If you want to use only the `midi.js` file as an API in your own project (instead of running the complete project with `index.html`), you can simply include `midi.js` in your HTML and use its API as documented.
 
-Full API documentation for `midi.js` is available at [https://midilli-tech.github.io/midiwebtool/MIDIEngine.html](https://midilli-tech.github.io/midiwebtool/MIDIEngine.html)
+Full API documentation for `midi.js` is available at [https://midilli-tech.github.io/midi-web-tool/MIDIEngine.html](https://midilli-tech.github.io/midi-web-tool/MIDIEngine.html)
 
 ## 🤝 Contribution
 
