@@ -20,78 +20,47 @@ limitations under the License.
  * MIDIEngine is a singleton object that provides an interface for interacting with the Web MIDI API.
  * It allows initialization of MIDI access, enumeration of input/output ports, opening/closing ports,
  * sending MIDI messages, and handling incoming MIDI messages via a callback.
- *
+ * 
+ * ## Quick Navigation
+ * 
+ * ### Initialization
+ * - {@link MIDIEngine.init} - Initialize MIDI access
+ * - {@link MIDIEngine.deinit} - Cleanup and release resources
+ * - {@link MIDIEngine.refresh_devices} - Refresh device list
+ * 
+ * ### Input Methods
+ * - {@link MIDIEngine.get_input_port_count} - Get number of input ports
+ * - {@link MIDIEngine.get_input_port_name} - Get input port name by index
+ * - {@link MIDIEngine.get_input_port_names} - Get all input port names
+ * - {@link MIDIEngine.open_input_port} - Open input port for listening
+ * - {@link MIDIEngine.close_input_port} - Close input port
+ * - {@link MIDIEngine.is_input_port_open} - Check if input port is open
+ * 
+ * ### Output Methods
+ * - {@link MIDIEngine.get_output_port_count} - Get number of output ports
+ * - {@link MIDIEngine.get_output_port_name} - Get output port name by index
+ * - {@link MIDIEngine.get_output_port_names} - Get all output port names
+ * - {@link MIDIEngine.open_output_port} - Open output port for sending
+ * - {@link MIDIEngine.close_output_port} - Close output port
+ * - {@link MIDIEngine.is_output_port_open} - Check if output port is open
+ * - {@link MIDIEngine.send_message} - Send MIDI message
+ * 
  * @namespace MIDIEngine
- *
- * @property {function(): promise<void>} init
- *   initializes midi access and populates input/output port lists.
- *   @returns {promise<void>} resolves when midi access is granted or logs error if denied.
- *
- * @property {function(): void} deinit
- *   Deinitializes MIDI, closes ports, and releases device references.
- *
- * @property {function(): void} refresh_devices
- *   Refreshes the list of available MIDI input and output devices.
- *
- * @property {function(): number} get_input_port_count
- *   Returns the number of available MIDI input ports.
- *   @returns {number}
- *
- * @property {function(number): string} get_input_port_name
- *   Returns the name of the MIDI input port at the specified index.
- *   @param {number} index - Index of the input port.
- *   @returns {string}
- *
- * @property {function(): string} get_input_port_names
- *   Returns a JSON string array of all MIDI input port names.
- *   @returns {string}
- *
- * @property {function(number): void} open_input_port
- *   Opens the MIDI input port at the specified index and assigns a message callback.
- *   @param {number} index - Index of the input port to open.
- *
- * @property {function(): void} close_input_port
- *   Closes the currently open MIDI input port.
- *
- * @property {function(number): boolean} is_input_port_open
- *   Checks if the MIDI input port at the specified index is connected.
- *   @param {number} index - Index of the input port.
- *   @returns {boolean}
- *
- * @property {function(): number} get_output_port_count
- *   Returns the number of available MIDI output ports.
- *   @returns {number}
- *
- * @property {function(number): string} get_output_port_name
- *   Returns the name of the MIDI output port at the specified index.
- *   @param {number} index - Index of the output port.
- *   @returns {string}
- *
- * @property {function(): string} get_output_port_names
- *   Returns a JSON string array of all MIDI output port names.
- *   @returns {string}
- *
- * @property {function(number): void} open_output_port
- *   Opens the MIDI output port at the specified index.
- *   @param {number} index - Index of the output port to open.
- *
- * @property {function(): void} close_output_port
- *   Closes the currently open MIDI output port.
- *
- * @property {function(number): boolean} is_output_port_open
- *   Checks if the MIDI output port at the specified index is connected.
- *   @param {number} index - Index of the output port.
- *   @returns {boolean}
- *
- * @property {function(Array<number>): void} send_message
- *   Sends a MIDI message (array of bytes) to the currently open output port.
- *   @param {Array<number>} dataArray - MIDI message bytes to send.
- *
+ * 
  * @example
+ * // Listen to MIDI messages
+ * window._midi_callback = function(messageJson) {
+ *   const message = JSON.parse(messageJson);
+ *   console.log("MIDI received:", message.data);
+ * };
  * await MIDIEngine.init();
- * const inputNames = JSON.parse(MIDIEngine.get_input_port_names());
  * MIDIEngine.open_input_port(0);
- * MIDIEngine.send_message([144, 60, 127]); // Note on, middle C, velocity 127
+ * 
+ * @example  
+ * // Send MIDI messages
+ * await MIDIEngine.init();
+ * MIDIEngine.open_output_port(0);
+ * MIDIEngine.send_message([0x90, 60, 127]);  // Note ON
  */
 var MIDIEngine = (function () {
   let midiAccess = null;
@@ -100,6 +69,11 @@ var MIDIEngine = (function () {
   let currentInput = null;
   let currentOutput = null;
 
+  /**
+   * Initializes MIDI access and populates input/output port lists.
+   * @memberof MIDIEngine
+   * @returns {Promise<void>} Resolves when MIDI access is granted or logs error if denied.
+   */
   function init() {
     return navigator.requestMIDIAccess({ sysex: true }).then((access) => {
       console.log("✅ MIDI access granted");
@@ -113,7 +87,11 @@ var MIDIEngine = (function () {
     });
   }
 
-  // Refreshes the list of MIDI input and output devices
+  /**
+   * Refreshes the list of available MIDI input and output devices.
+   * @memberof MIDIEngine
+   * @returns {void}
+   */
   function refresh_devices() {
     if (midiAccess) {
       midiInputs = Array.from(midiAccess.inputs.values());
@@ -128,18 +106,40 @@ var MIDIEngine = (function () {
 
   // INPUT FUNCTIONS
   
+  /**
+   * Returns the number of available MIDI input ports.
+   * @memberof MIDIEngine
+   * @returns {number} The number of available MIDI input ports.
+   */
   function get_input_port_count() {
     return midiInputs.length;
   }
 
+  /**
+   * Returns the name of the MIDI input port at the specified index.
+   * @memberof MIDIEngine
+   * @param {number} index - Index of the input port.
+   * @returns {string} Name of the MIDI input port.
+   */
   function get_input_port_name(index) {
     return midiInputs[index]?.name || "";
   }
 
+  /**
+   * Returns a JSON string array of all MIDI input port names.
+   * @memberof MIDIEngine
+   * @returns {string} JSON string array of all MIDI input port names.
+   */
   function get_input_port_names() {
     return JSON.stringify(midiInputs.map((input) => input.name));
   }
 
+  /**
+   * Opens the MIDI input port at the specified index and assigns a message callback.
+   * @memberof MIDIEngine
+   * @param {number} index - Index of the input port to open.
+   * @returns {void}
+   */
   function open_input_port(index) {
     currentInput = midiInputs[index] || null;
     if (currentInput) {
@@ -163,6 +163,11 @@ var MIDIEngine = (function () {
     }
   }
 
+  /**
+   * Closes the currently open MIDI input port.
+   * @memberof MIDIEngine
+   * @returns {void}
+   */
   function close_input_port() {
     if (currentInput) {
       currentInput.onmidimessage = null;
@@ -171,26 +176,59 @@ var MIDIEngine = (function () {
   }
 
   // OUTPUT FUNCTIONS
+  /**
+   * Returns the number of available MIDI output ports.
+   * @memberof MIDIEngine
+   * @returns {number} The number of available MIDI output ports.
+   */
   function get_output_port_count() {
     return midiOutputs.length;
   }
 
+  /**
+   * Returns the name of the MIDI output port at the specified index.
+   * @memberof MIDIEngine
+   * @param {number} index - Index of the output port.
+   * @returns {string} Name of the MIDI output port.
+   */
   function get_output_port_name(index) {
     return midiOutputs[index]?.name || "";
   }
 
+  /**
+   * Returns a JSON string array of all MIDI output port names.
+   * @memberof MIDIEngine
+   * @returns {string} JSON string array of all MIDI output port names.
+   */
   function get_output_port_names() {
     return JSON.stringify(midiOutputs.map((output) => output.name));
   }
 
+  /**
+   * Opens the MIDI output port at the specified index.
+   * @memberof MIDIEngine
+   * @param {number} index - Index of the output port to open.
+   * @returns {void}
+   */
   function open_output_port(index) {
     currentOutput = midiOutputs[index] || null;
   }
 
+  /**
+   * Closes the currently open MIDI output port.
+   * @memberof MIDIEngine
+   * @returns {void}
+   */
   function close_output_port() {
     currentOutput = null;
   }
 
+  /**
+   * Checks if the MIDI input port at the specified index is connected.
+   * @memberof MIDIEngine
+   * @param {number} index - Index of the input port.
+   * @returns {boolean} True if the MIDI input port is connected.
+   */
   function is_input_port_open(index) {
     if (midiInputs[index]) {
   	  return midiInputs[index].state === "connected";
@@ -198,6 +236,12 @@ var MIDIEngine = (function () {
     return false;
   }
   
+  /**
+   * Checks if the MIDI output port at the specified index is connected.
+   * @memberof MIDIEngine
+   * @param {number} index - Index of the output port.
+   * @returns {boolean} True if the MIDI output port is connected.
+   */
   function is_output_port_open(index) {
     if (midiOutputs[index]) {
   	  return midiOutputs[index].state === "connected";
@@ -205,6 +249,12 @@ var MIDIEngine = (function () {
     return false;
   }
 
+  /**
+   * Sends a MIDI message (array of bytes) to the currently open output port.
+   * @memberof MIDIEngine
+   * @param {Array<number>} dataArray - MIDI message bytes to send.
+   * @returns {void}
+   */
   function send_message(dataArray) {
     if (currentOutput && typeof currentOutput.send === 'function') {
       currentOutput.send(dataArray);
@@ -213,8 +263,11 @@ var MIDIEngine = (function () {
     }
   }
 
-  // Deinitialize MIDI: close ports and release references
-  // Need to init() again to reinitialize MIDI access
+  /**
+   * Deinitializes MIDI, closes ports, and releases device references.
+   * @memberof MIDIEngine
+   * @returns {void}
+   */
   function deinit() {
     close_input_port();
     close_output_port();

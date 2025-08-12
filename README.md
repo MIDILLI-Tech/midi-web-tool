@@ -68,6 +68,9 @@ Some more info on these pages:
 > **Note:** Safari and Safari iOS do not currently support the Web MIDI API.  
 > Source: [caniuse.com/midi](https://caniuse.com/midi)
 
+## 📚 Documentation
+
+Full documentation is available at [https://midilli-tech.github.io/midiwebtool/MIDIEngine.html](https://midilli-tech.github.io/midiwebtool/MIDIEngine.html)
 
 ## 🤝 Contribution
 
