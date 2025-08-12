@@ -28,7 +28,8 @@ limitations under the License.
         td { background: #23272F; color: #F3F6F9; }
         #inputs { margin-top: 2em; margin-bottom: 1em; display: flex; align-items: center; gap: 1.2em; }
         h1 { text-align: center; color: #fff; }
-        select, button, input[type="checkbox"] {
+        /* Base styles */
+        select {
             background: #374151;
             color: #F3F6F9;
             border: 1px solid #4B5563;
@@ -37,17 +38,31 @@ limitations under the License.
             cursor: pointer;
             transition: background 0.2s, color 0.2s;
         }
-        select:focus, button:focus {
-            outline: 2px solid #FFF;
-        }
-        button:hover, select:hover {
-            background: #4B5563;
-            color: #FFF;
-        }
         button, input[type="button"] {
             background: #2D3748;
             color: #FFF;
             border: 1px solid #FFF;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        input[type="checkbox"] {
+            background: #374151;
+            color: #F3F6F9;
+            border: 1px solid #4B5563;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        /* Focus states */
+        select:focus, button:focus, input[type="button"]:focus {
+            outline: 2px solid #FFF;
+        }
+        /* Hover states */
+        select:hover {
+            background: #4B5563;
+            color: #FFF;
         }
         button:hover, input[type="button"]:hover {
             background: #FFF;
@@ -283,7 +298,7 @@ limitations under the License.
 
     <script src="midi.js"></script>
     <script>
-        LAST_UPDATED = "09.08.2025"; // Update this with the actual last updated date
+        LAST_UPDATED = "12.08.2025"; // Update this with the actual last updated date
         let rawFormat = 'hex';
         // Show error if MIDI access is denied
         if (!navigator.requestMIDIAccess) {
