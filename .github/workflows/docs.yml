@@ -1,0 +1,93 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'midi.js'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'midi.js'
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install JSDoc
+        run: npm install -g jsdoc
+        
+      - name: Debug - List files
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Looking for midi.js:"
+          find . -name "midi.js" 2>/dev/null || echo "No midi.js found"
+        
+      - name: Create JSDoc config
+        run: |
+          cat > jsdoc.conf.json << 'EOF'
+          {
+            "source": {
+              "include": ["./midi.js"],
+              "includePattern": "\\.(js)$"
+            },
+            "opts": {
+              "destination": "./docs/",
+              "readme": "./README.md"
+            },
+            "plugins": ["plugins/markdown"],
+            "templates": {
+              "cleverLinks": false,
+              "monospaceLinks": false
+            }
+          }
+          EOF
+        
+      - name: Generate Documentation
+        run: |
+          if [ -f "./midi.js" ]; then
+            echo "Found midi.js, generating documentation..."
+            jsdoc -c jsdoc.conf.json
+          else
+            echo "ERROR: midi.js not found"
+            echo "Available files:"
+            find . -name "*.js" 2>/dev/null
+            exit 1
+          fi
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+        
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+          
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        id: deployment
+        uses: actions/deploy-pages@v4
+          
+      - name: Upload Documentation Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/
